@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,6 +29,9 @@ namespace WebsocketGameServer
             services.AddControllers();
         }
 
+        public delegate void SocketHandler(HttpContext context, WebSocket socket);
+        public event SocketHandler SocketJoin;
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
@@ -35,6 +39,38 @@ namespace WebsocketGameServer
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            WebSocketOptions opts = new WebSocketOptions()
+            {
+                KeepAliveInterval = TimeSpan.FromSeconds(120),
+                ReceiveBufferSize = 8192
+            };
+
+            //create playercontroller and subscribe to events
+
+
+            app.UseWebSockets(opts);
+
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path == "/ws")
+                {
+                    if (context.WebSockets.IsWebSocketRequest)
+                    {
+                        WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync().ConfigureAwait(false);
+                        SocketJoin?.Invoke(context, webSocket);
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = 400;
+                    }
+                }
+                else
+                {
+                    await next().ConfigureAwait(true);
+                }
+
+            });
 
             app.UseHttpsRedirection();
 
