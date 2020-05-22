@@ -11,12 +11,12 @@ namespace WebsocketGameServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PlayerController : ControllerBase
+    public class PlayerController : ControllerBase, IPlayerController
     {
-        public PlayerController(IPlayerManager PlayerManager, IVerificationService VerificationService)
+        public PlayerController(IPlayerManager playerManager, IVerificationService verificationService)
         {
-            verificationService = VerificationService;
-            playerManager = PlayerManager;
+            this.verificationService = verificationService;
+            this.playerManager = playerManager;
         }
         private readonly IVerificationService verificationService;
         private readonly IPlayerManager playerManager;
@@ -30,7 +30,7 @@ namespace WebsocketGameServer.Controllers
             return await verificationService.VerifyToken(token).ConfigureAwait(false);
         }
 
-        public async Task AcceptplayerAsync(IPlayer player)
+        public async Task AcceptPlayerAsync(IPlayer player)
         {
             await playerManager.AddPlayer(player).ConfigureAwait(false);
         }
