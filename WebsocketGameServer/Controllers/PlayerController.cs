@@ -36,6 +36,5 @@ namespace WebsocketGameServer.Controllers
         {            
             await playerManager.AddPlayer(player).ConfigureAwait(false);
         }
-
     }
 }
