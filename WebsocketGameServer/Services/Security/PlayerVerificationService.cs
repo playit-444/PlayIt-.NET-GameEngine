@@ -10,7 +10,7 @@ namespace WebsocketGameServer.Services.Security
 {
     public class PlayerVerificationService : IVerificationService<PlayerVerificationResponseModel>
     {
-        private readonly string ValidationRequestURL = "https://api.444.dk/api/Account/verifyToken";
+        private readonly Uri validationRequestURL = new Uri("https://api.444.dk/api/Account/verifyToken");
 
         /// <summary>
         /// Calls The API to verify the Player
@@ -25,7 +25,10 @@ namespace WebsocketGameServer.Services.Security
             using (HttpClient client = new HttpClient())
             {
                 HttpResponseMessage response =
-                    client.PostAsync(ValidationRequestURL, stringContent).Result;
+                    await client.PostAsync(validationRequestURL, stringContent).ConfigureAwait(false);
+
+                stringContent.Dispose();
+
                 using (HttpContent content = response.Content)
                 {
                     string jsonString = await content.ReadAsStringAsync().ConfigureAwait(false);

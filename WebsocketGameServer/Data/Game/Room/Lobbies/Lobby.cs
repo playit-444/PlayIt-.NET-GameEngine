@@ -26,22 +26,20 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
                 initialPlayers = Array.Empty<IPlayer>();
         }
 
-        /// <summary>
-        /// The minimum required players needed to start a game
-        /// </summary>
-        public byte MinPlayersNeededToStart { get; private set; }
-        
-        
-        /// <summary>
-        /// The maximum required players needed to start a game
-        /// </summary>
-        public byte MaxPlayersNeededToStart { get; private set; }
-        
         public int GameType { get; private set; }
         public string Name { get; private set; }
         public IDictionary<IPlayer, bool> PlayerReadyState { get; private set; }
         public string RoomID { get; private set; }
         public HashSet<IPlayer> Players { get; private set; }
+
+        public byte MinPlayersNeededToStart { get; private set; }
+
+        public byte MaxPlayersNeededToStart { get; private set; }
+
+        public virtual async Task<bool> PlayerCanJoinRoom(IPlayer player)
+        {
+            throw new NotImplementedException();
+        }
 
         protected virtual void Dispose(bool disposing)
         {

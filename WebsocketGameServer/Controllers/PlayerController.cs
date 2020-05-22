@@ -9,6 +9,7 @@ using WebsocketGameServer.Managers;
 using WebsocketGameServer.Data.Game.Player;
 using System.Net.WebSockets;
 using WebsocketGameServer.Models.Player;
+using WebsocketGameServer.Managers.Room;
 
 namespace WebsocketGameServer.Controllers
 {
@@ -16,13 +17,15 @@ namespace WebsocketGameServer.Controllers
     [ApiController]
     public class PlayerController : ControllerBase
     {
-        public PlayerController(IPlayerManager PlayerManager, IVerificationService<PlayerVerificationResponseModel> VerificationService) 
+        public HashSet<IPlayer> Players { get; private set; }
+
+        public PlayerController(IRoomManager roomMan, IVerificationService<PlayerVerificationResponseModel> VerificationService)
         {
             verificationService = VerificationService;
-            playerManager = PlayerManager;
+            roomManager = roomMan;
         }
         private readonly IVerificationService<PlayerVerificationResponseModel> verificationService;
-        private readonly IPlayerManager playerManager;
+        private readonly IRoomManager roomManager;
 
         public async Task<PlayerVerificationResponseModel> VerifyAsync(string token)
         {
@@ -33,8 +36,11 @@ namespace WebsocketGameServer.Controllers
         }
 
         public async Task AcceptPlayerAsync(IPlayer player)
-        {            
-            await playerManager.AddPlayer(player).ConfigureAwait(false);
+        {
+            if (player == null)
+                return;
+
+            Players.Add(player);
         }
     }
 }

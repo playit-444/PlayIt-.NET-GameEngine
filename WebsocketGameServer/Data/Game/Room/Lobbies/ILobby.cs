@@ -22,5 +22,16 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
         /// The player state, stating whether they are ready to play
         /// </summary>
         IDictionary<IPlayer, bool> PlayerReadyState { get; }
+
+        /// <summary>
+        /// The minimum required players needed to start a game
+        /// </summary>
+        public byte MinPlayersNeededToStart { get; }
+
+
+        /// <summary>
+        /// The maximum required players needed to start a game
+        /// </summary>
+        public byte MaxPlayersNeededToStart { get; }
     }
 }

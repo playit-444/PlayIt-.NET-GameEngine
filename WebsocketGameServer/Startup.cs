@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using WebsocketGameServer.Managers;
+using WebsocketGameServer.Managers.Room;
 using WebsocketGameServer.Server;
 using WebsocketGameServer.Services.Security;
 
@@ -23,7 +24,7 @@ namespace WebsocketGameServer
         WebsocketGameServer.Server.GameServer server =
             new WebsocketGameServer.Server.GameServer(
                 new Controllers.PlayerController(
-                    new PlayerManager(),
+                    new RoomManager(),
                     new PlayerVerificationService()));
 
         public Startup(IConfiguration configuration)
