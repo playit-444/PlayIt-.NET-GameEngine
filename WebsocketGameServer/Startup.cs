@@ -5,17 +5,27 @@ using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using WebsocketGameServer.Managers;
+using WebsocketGameServer.Server;
+using WebsocketGameServer.Services.Security;
 
 namespace WebsocketGameServer
 {
     public class Startup
     {
+        WebsocketGameServer.Server.GameServer server =
+            new WebsocketGameServer.Server.GameServer(
+                new Controllers.PlayerController(
+                    new PlayerManager(),
+                    new VerificationService()));
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -46,8 +56,8 @@ namespace WebsocketGameServer
                 ReceiveBufferSize = 8192
             };
 
-            //create playercontroller and subscribe to events
-
+            //subscribe to socket event
+            SocketJoin += server.HandleNewSocket;
 
             app.UseWebSockets(opts);
 

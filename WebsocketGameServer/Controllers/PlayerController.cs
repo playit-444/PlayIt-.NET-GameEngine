@@ -32,7 +32,7 @@ namespace WebsocketGameServer.Controllers
             return await verificationService.VerifyToken(token).ConfigureAwait(false);                
         }
 
-        public async Task AcceptplayerAsync(IPlayer player)
+        public async Task AcceptPlayerAsync(IPlayer player)
         {            
             await playerManager.AddPlayer(player).ConfigureAwait(false);
         }
