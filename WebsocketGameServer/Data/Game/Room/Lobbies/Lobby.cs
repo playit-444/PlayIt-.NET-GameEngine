@@ -38,7 +38,13 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
 
         public virtual async Task<bool> PlayerCanJoinRoom(IPlayer player)
         {
-            throw new NotImplementedException();
+            if (player == null || player.PlayerID.Equals(0) || player.Socket == null)
+                return false;
+
+            if (Players.Count >= (int)MaxPlayersNeededToStart)
+                return false;
+
+            return true;
         }
 
         protected virtual void Dispose(bool disposing)

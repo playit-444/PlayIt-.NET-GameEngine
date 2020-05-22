@@ -32,7 +32,7 @@ namespace WebsocketGameServer.Managers.Room
             if (player == null || string.IsNullOrEmpty(roomId))
                 return false;
 
-            if (Rooms.ContainsKey(roomId) && await Rooms[roomId].PlayerCanJoinRoom(player))
+            if (Rooms.ContainsKey(roomId) && await Rooms[roomId].PlayerCanJoinRoom(player).ConfigureAwait(false))
             {
                 Rooms[roomId].Players.Add(player);
 

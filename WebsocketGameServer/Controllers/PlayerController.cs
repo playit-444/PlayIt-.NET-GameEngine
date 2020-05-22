@@ -13,9 +13,7 @@ using WebsocketGameServer.Managers.Room;
 
 namespace WebsocketGameServer.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class PlayerController : ControllerBase
+    public class PlayerController
     {
         public HashSet<IPlayer> Players { get; private set; }
 
