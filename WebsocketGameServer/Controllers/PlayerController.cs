@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +13,7 @@ namespace WebsocketGameServer.Controllers
     [ApiController]
     public class PlayerController : ControllerBase
     {
-        public PlayerController(IPlayerManager PlayerManager, IVerificationService VerificationService) 
+        public PlayerController(IPlayerManager PlayerManager, IVerificationService VerificationService)
         {
             verificationService = VerificationService;
             playerManager = PlayerManager;
@@ -29,17 +27,17 @@ namespace WebsocketGameServer.Controllers
             if (string.IsNullOrEmpty(token))
                 return false;
 
-            return await verificationService.VerifyToken(token).ConfigureAwait(false);                
+            return await verificationService.VerifyToken(token).ConfigureAwait(false);
         }
 
         public async Task AcceptplayerAsync(IPlayer player)
-        {            
+        {
             await playerManager.AddPlayer(player).ConfigureAwait(false);
         }
 
         public void HandleNewSocket(HttpContext context, WebSocket socket)
         {
-            
+
         }
     }
 }
