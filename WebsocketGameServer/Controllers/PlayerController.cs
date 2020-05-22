@@ -8,6 +8,7 @@ using WebsocketGameServer.Services.Security;
 using WebsocketGameServer.Managers;
 using WebsocketGameServer.Data.Game.Player;
 using System.Net.WebSockets;
+using WebsocketGameServer.Models.Player;
 
 namespace WebsocketGameServer.Controllers
 {
@@ -15,19 +16,19 @@ namespace WebsocketGameServer.Controllers
     [ApiController]
     public class PlayerController : ControllerBase
     {
-        public PlayerController(IPlayerManager PlayerManager, IVerificationService VerificationService) 
+        public PlayerController(IPlayerManager PlayerManager, IVerificationService<PlayerVerificationResponseModel> VerificationService) 
         {
             verificationService = VerificationService;
             playerManager = PlayerManager;
         }
-        private readonly IVerificationService verificationService;
+        private readonly IVerificationService<PlayerVerificationResponseModel> verificationService;
         private readonly IPlayerManager playerManager;
         private readonly ICollection<WebSocket> awaitingPlayers;
 
-        public async Task<bool> VerifyAsync(string token)
+        public async Task<PlayerVerificationResponseModel> VerifyAsync(string token)
         {
             if (string.IsNullOrEmpty(token))
-                return false;
+                return null;
 
             return await verificationService.VerifyToken(token).ConfigureAwait(false);                
         }
