@@ -86,6 +86,12 @@ namespace WebsocketGameServer
 
             app.UseRouting();
 
+            app.UseCors(opts => opts
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+            );
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
