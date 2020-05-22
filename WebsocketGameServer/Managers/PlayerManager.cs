@@ -13,6 +13,7 @@ namespace WebsocketGameServer.Managers
 
         public Task<bool> AddPlayer(IPlayer player, IRoom[] rooms = null)
         {
+            
             throw new NotImplementedException();
         }
 
