@@ -34,7 +34,7 @@ namespace WebsocketGameServer.Server
             {
                 do
                 {
-                    res = 
+                    res =
                         await socket
                             .ReceiveAsync(buffer, CancellationToken.None)
                             .ConfigureAwait(true);
@@ -50,7 +50,7 @@ namespace WebsocketGameServer.Server
 
                     using (var reader = new StreamReader(ms, Encoding.UTF8))
                     {
-                        key = 
+                        key =
                             await reader
                                 .ReadToEndAsync()
                                 .ConfigureAwait(false);
@@ -59,7 +59,12 @@ namespace WebsocketGameServer.Server
                     if (string.IsNullOrEmpty(key))
                         return;
 
-                    PlayerVerificationResponseModel playerData = 
+                    if (key[0] == '\"' && key[^1] == '\"')
+                    {
+                        key = key[1..^1];
+                    }
+
+                    PlayerVerificationResponseModel playerData =
                         await playerController
                             .VerifyAsync(key)
                             .ConfigureAwait(false);
