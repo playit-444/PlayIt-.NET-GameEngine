@@ -37,9 +37,5 @@ namespace WebsocketGameServer.Controllers
             await playerManager.AddPlayer(player).ConfigureAwait(false);
         }
 
-        public void HandleNewSocket(HttpContext context, WebSocket socket)
-        {
-            
-        }
     }
 }
