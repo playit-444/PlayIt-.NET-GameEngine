@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace WebsocketGameServer.Services.Security
 {
-    public interface IVerificationService
+    public interface IVerificationService<T> where T : class
     {
-        public Task<bool> VerifyToken(string token);
+        public Task<T> VerifyToken(string token);
     }
 }

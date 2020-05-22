@@ -4,10 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Text.Json;
+using WebsocketGameServer.Models.Player;
 
 namespace WebsocketGameServer.Services.Security
 {
-    public class VerificationService : IVerificationService
+    public class VerificationService : IVerificationService<PlayerVerificationResponseModel>
     {
         private readonly Uri ValidationRequestURL = new Uri("https://api.444.dk/api/Account/verify/");
 
@@ -16,13 +17,13 @@ namespace WebsocketGameServer.Services.Security
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public Task<bool> VerifyToken(string token)
+        public Task<PlayerVerificationResponseModel> VerifyToken(string token)
         {
             using (HttpClient client = new HttpClient())
             {
                 HttpResponseMessage message = client.GetAsync(new Uri(ValidationRequestURL, token)).Result;
 
-                return Task.FromResult(message.IsSuccessStatusCode);
+                //TODO: make response
             }
         }
     }
