@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebsocketGameServer.Services.Security;
 using WebsocketGameServer.Managers;
 using WebsocketGameServer.Data.Game.Player;
+using System.Net.WebSockets;
 
 namespace WebsocketGameServer.Controllers
 {
@@ -21,23 +22,22 @@ namespace WebsocketGameServer.Controllers
         }
         private readonly IVerificationService verificationService;
         private readonly IPlayerManager playerManager;
+        private readonly ICollection<WebSocket> awaitingPlayers;
 
-        [HttpPost]
-        [Route("verify/{token}")]
-        public async Task<IActionResult> VerifyAsync(string token)
+        public async Task<bool> VerifyAsync(string token)
         {
             if (string.IsNullOrEmpty(token))
-                return BadRequest();
+                return false;
 
-            if (await verificationService.VerifyToken(token).ConfigureAwait(false))
-                return Ok();
-            else
-                return BadRequest();
+            return await verificationService.VerifyToken(token).ConfigureAwait(false);                
         }
 
-        [HttpPost]
-        [Route("accept/{player}")]
         public async Task AcceptplayerAsync(IPlayer player)
+        {            
+            await playerManager.AddPlayer(player).ConfigureAwait(false);
+        }
+
+        public void HandleNewSocket(HttpContext context, WebSocket socket)
         {
             
         }
