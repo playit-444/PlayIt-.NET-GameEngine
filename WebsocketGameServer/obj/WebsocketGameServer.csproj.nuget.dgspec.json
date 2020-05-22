@@ -1,25 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Mark\\Desktop\\Projekter\\Privat\\Svendeprøve\\Game Engine\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {}
+    "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Mark\\Desktop\\Projekter\\Privat\\Svendeprøve\\Game Engine\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {
+    "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Mark\\Desktop\\Projekter\\Privat\\Svendeprøve\\Game Engine\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
+        "projectUniqueName": "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
         "projectName": "WebsocketGameServer",
-        "projectPath": "C:\\Users\\Mark\\Desktop\\Projekter\\Privat\\Svendeprøve\\Game Engine\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
-        "packagesPath": "C:\\Users\\Mark\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Mark\\Desktop\\Projekter\\Privat\\Svendeprøve\\Game Engine\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\obj\\",
+        "projectPath": "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
+        "packagesPath": "C:\\Users\\Peter\\.nuget\\packages\\",
+        "outputPath": "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Microsoft\\Xamarin\\NuGet\\"
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Mark\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+          "C:\\Users\\Peter\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "netcoreapp3.1"
@@ -71,7 +70,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.100\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.102\\RuntimeIdentifierGraph.json"
         }
       }
     }
