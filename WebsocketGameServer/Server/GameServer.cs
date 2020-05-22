@@ -34,7 +34,11 @@ namespace WebsocketGameServer.Server
             {
                 do
                 {
-                    res = await socket.ReceiveAsync(buffer, CancellationToken.None).ConfigureAwait(true);
+                    res = 
+                        await socket
+                            .ReceiveAsync(buffer, CancellationToken.None)
+                            .ConfigureAwait(true);
+
                     ms.Write(buffer.Array, buffer.Offset, res.Count);
                 } while (!res.EndOfMessage);
 
@@ -46,18 +50,26 @@ namespace WebsocketGameServer.Server
 
                     using (var reader = new StreamReader(ms, Encoding.UTF8))
                     {
-                        key = await reader.ReadToEndAsync().ConfigureAwait(false);
+                        key = 
+                            await reader
+                                .ReadToEndAsync()
+                                .ConfigureAwait(false);
                     }
 
                     if (string.IsNullOrEmpty(key))
                         return;
 
-                    PlayerVerificationResponseModel playerData = null;// = await playerController.VerifyAsync(key).ConfigureAwait(false)
+                    PlayerVerificationResponseModel playerData = 
+                        await playerController
+                            .VerifyAsync(key)
+                            .ConfigureAwait(false);
 
                     if (playerData == null)
                         return;
 
-                    await playerController.AcceptPlayerAsync(new Player(playerData.Key, socket, playerData.PlayerId, playerData.Name)).ConfigureAwait(false);
+                    await playerController
+                        .AcceptPlayerAsync(new Player(playerData.Key, socket, playerData.PlayerId, playerData.Name))
+                        .ConfigureAwait(false);
                 }
             }
         }

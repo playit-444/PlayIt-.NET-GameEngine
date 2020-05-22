@@ -23,14 +23,13 @@ namespace WebsocketGameServer.Controllers
         }
         private readonly IVerificationService<PlayerVerificationResponseModel> verificationService;
         private readonly IPlayerManager playerManager;
-        private readonly ICollection<WebSocket> awaitingPlayers;
 
         public async Task<PlayerVerificationResponseModel> VerifyAsync(string token)
         {
             if (string.IsNullOrEmpty(token))
                 return null;
 
-            return await verificationService.VerifyToken(token).ConfigureAwait(false);                
+            return await verificationService.VerifyToken(token).ConfigureAwait(false);
         }
 
         public async Task AcceptPlayerAsync(IPlayer player)
