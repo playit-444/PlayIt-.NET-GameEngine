@@ -24,7 +24,7 @@ namespace WebsocketGameServer
             new WebsocketGameServer.Server.GameServer(
                 new Controllers.PlayerController(
                     new PlayerManager(),
-                    new VerificationService()));
+                    new PlayerVerificationService()));
 
         public Startup(IConfiguration configuration)
         {

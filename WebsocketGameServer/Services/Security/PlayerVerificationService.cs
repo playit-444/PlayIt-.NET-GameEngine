@@ -8,7 +8,7 @@ using WebsocketGameServer.Models.Player;
 
 namespace WebsocketGameServer.Services.Security
 {
-    public class VerificationService : IVerificationService<PlayerVerificationResponseModel>
+    public class PlayerVerificationService : IVerificationService<PlayerVerificationResponseModel>
     {
         private readonly Uri ValidationRequestURL = new Uri("https://api.444.dk/api/Account/verify/");
 
