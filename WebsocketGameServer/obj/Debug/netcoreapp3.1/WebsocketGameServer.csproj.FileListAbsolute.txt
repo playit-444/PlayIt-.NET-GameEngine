@@ -89,3 +89,5 @@ C:\Users\Peter\source\repos\WebsocketGameServer\WebsocketGameServer\bin\Debug\ne
 C:\Users\Peter\source\repos\WebsocketGameServer\WebsocketGameServer\obj\Debug\netcoreapp3.1\WebsocketGameServer.csproj.CopyComplete
 C:\Users\Peter\source\repos\WebsocketGameServer\WebsocketGameServer\obj\Debug\netcoreapp3.1\WebsocketGameServer.dll
 C:\Users\Peter\source\repos\WebsocketGameServer\WebsocketGameServer\obj\Debug\netcoreapp3.1\WebsocketGameServer.pdb
+C:\Users\Christoffer\RiderProjects\RiderProjects\PlayIt-.NET-GameEngine\WebsocketGameServer\obj\Debug\netcoreapp3.1\WebsocketGameServer.dll
+C:\Users\Christoffer\RiderProjects\RiderProjects\PlayIt-.NET-GameEngine\WebsocketGameServer\obj\Debug\netcoreapp3.1\WebsocketGameServer.pdb

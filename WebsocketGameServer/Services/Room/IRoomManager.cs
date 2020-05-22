@@ -8,10 +8,11 @@ namespace WebsocketGameServer.Services.Room
 {
     public interface IRoomManager
     {
-        public IDictionary<string, IRoom> Rooms();
-        public Task<bool> AddPlayer (IPlayer player, string name);
-        public Task<bool> RemovePlayer(IPlayer player);
+        public IDictionary<string, IRoom> Rooms { get; }
+        public IDictionary<IPlayer, ICollection<IRoom>> PlayerRooms { get; }
+        public Task<bool> AddPlayer (IPlayer player, string roomId);
+        public Task<bool> RemovePlayer(IPlayer player, string roomId);
         public void AddRoom(IRoom room);
-        public void RemoveRoom(string room);
+        public void RemoveRoom(string roomId);
     }
 }

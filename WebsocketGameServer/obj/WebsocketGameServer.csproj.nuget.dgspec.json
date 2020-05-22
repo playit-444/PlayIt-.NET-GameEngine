@@ -1,24 +1,26 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {}
+    "C:\\Users\\Christoffer\\RiderProjects\\RiderProjects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {}
   },
   "projects": {
-    "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {
+    "C:\\Users\\Christoffer\\RiderProjects\\RiderProjects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
+        "projectUniqueName": "C:\\Users\\Christoffer\\RiderProjects\\RiderProjects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
         "projectName": "WebsocketGameServer",
-        "projectPath": "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
-        "packagesPath": "C:\\Users\\Peter\\.nuget\\packages\\",
-        "outputPath": "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\obj\\",
+        "projectPath": "C:\\Users\\Christoffer\\RiderProjects\\RiderProjects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
+        "packagesPath": "C:\\Users\\Christoffer\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Christoffer\\RiderProjects\\RiderProjects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
+          "C:\\Microsoft\\Xamarin\\NuGet",
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Peter\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\Christoffer\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
         ],
         "originalTargetFrameworks": [
           "netcoreapp3.1"
@@ -41,9 +43,11 @@
       "frameworks": {
         "netcoreapp3.1": {
           "dependencies": {
+            "BouncyCastle": {
+              "target": "Package",
+              "version": "[1.8.6.1, )"
+            },
             "Microsoft.CodeAnalysis.FxCopAnalyzers": {
-              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
-              "suppressParent": "All",
               "target": "Package",
               "version": "[3.0.0, )"
             },
@@ -70,7 +74,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.102\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.202\\RuntimeIdentifierGraph.json"
         }
       }
     }
