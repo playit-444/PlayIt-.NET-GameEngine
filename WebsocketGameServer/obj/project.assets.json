@@ -2,6 +2,15 @@
   "version": 3,
   "targets": {
     ".NETCoreApp,Version=v3.1": {
+      "BouncyCastle/1.8.6.1": {
+        "type": "package",
+        "compile": {
+          "lib/BouncyCastle.Crypto.dll": {}
+        },
+        "runtime": {
+          "lib/BouncyCastle.Crypto.dll": {}
+        }
+      },
       "Microsoft.AspNetCore.Html.Abstractions/2.2.0": {
         "type": "package",
         "dependencies": {
@@ -1837,6 +1846,19 @@
     }
   },
   "libraries": {
+    "BouncyCastle/1.8.6.1": {
+      "sha512": "rkqpuKmJkdcfTMBkIj1b5nMdBAWKwAyh+I/BQYeqqSD2jkIlhwc9qBNKmSbnpmmm5c29qHZGLpvBSTNWvDLtQA==",
+      "type": "package",
+      "path": "bouncycastle/1.8.6.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "bouncycastle.1.8.6.1.nupkg.sha512",
+        "bouncycastle.nuspec",
+        "lib/BouncyCastle.Crypto.dll"
+      ]
+    },
     "Microsoft.AspNetCore.Html.Abstractions/2.2.0": {
       "sha512": "Y4rs5aMEXY8G7wJo5S3EEt6ltqyOTr/qOeZzfn+hw/fuQj5GppGckMY5psGLETo1U9hcT5MmAhaT5xtusM1b5g==",
       "type": "package",
@@ -6416,28 +6438,31 @@
   },
   "projectFileDependencyGroups": {
     ".NETCoreApp,Version=v3.1": [
+      "BouncyCastle >= 1.8.6.1",
       "Microsoft.CodeAnalysis.FxCopAnalyzers >= 3.0.0",
       "Microsoft.VisualStudio.Web.CodeGeneration.Design >= 3.1.1"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Mark\\.nuget\\packages\\": {},
-    "C:\\Microsoft\\Xamarin\\NuGet\\": {}
+    "C:\\Users\\Christoffer\\.nuget\\packages\\": {},
+    "C:\\Microsoft\\Xamarin\\NuGet": {},
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Mark\\Desktop\\Projekter\\Privat\\Svendeprøve\\Game Engine\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
+      "projectUniqueName": "C:\\Users\\Christoffer\\RiderProjects\\RiderProjects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
       "projectName": "WebsocketGameServer",
-      "projectPath": "C:\\Users\\Mark\\Desktop\\Projekter\\Privat\\Svendeprøve\\Game Engine\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
-      "packagesPath": "C:\\Users\\Mark\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Mark\\Desktop\\Projekter\\Privat\\Svendeprøve\\Game Engine\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\obj\\",
+      "projectPath": "C:\\Users\\Christoffer\\RiderProjects\\RiderProjects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
+      "packagesPath": "C:\\Users\\Christoffer\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Christoffer\\RiderProjects\\RiderProjects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Microsoft\\Xamarin\\NuGet\\"
+        "C:\\Microsoft\\Xamarin\\NuGet",
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\Mark\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Christoffer\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
       ],
@@ -6462,9 +6487,11 @@
     "frameworks": {
       "netcoreapp3.1": {
         "dependencies": {
+          "BouncyCastle": {
+            "target": "Package",
+            "version": "[1.8.6.1, )"
+          },
           "Microsoft.CodeAnalysis.FxCopAnalyzers": {
-            "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
-            "suppressParent": "All",
             "target": "Package",
             "version": "[3.0.0, )"
           },
@@ -6491,8 +6518,20 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.100\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.202\\RuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'BouncyCastle 1.8.6.1' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
+      "libraryId": "BouncyCastle",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1"
+      ]
+    }
+  ]
 }
