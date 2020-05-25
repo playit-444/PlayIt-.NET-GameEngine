@@ -38,61 +38,65 @@ namespace WebsocketGameServer.Server
         /// </summary>
         /// <param name="context">The http context that the socket connected through</param>
         /// <param name="socket">The socket attempting to get accepted</param>
-        public async void HandleNewSocketAsync(HttpContext context, WebSocket socket)
+        public void HandleNewSocketAsync(HttpContext context, WebSocket socket)
         {
-            byte[] buf = new byte[4096];
-            //check nulls
-            if (socket == null)
-                throw new ArgumentNullException(nameof(socket));
-
-            //declare temptorary buffer
-            ArraySegment<byte> buffer = new ArraySegment<byte>(buf);
-
-            //temporary receive result
-            WebSocketReceiveResult res;
-
-            //get response
-            res =
-                await socket
-                    .ReceiveAsync(buffer, CancellationToken.None)
-                    .ConfigureAwait(true);
-
-            //check the message type
-            if (!res.CloseStatus.HasValue)
+            Task.Run(async () =>
             {
-                string key = string.Empty;
 
-                key =Encoding.UTF8.GetString(new ArraySegment<byte>(buf, 0, res.Count).Array);
-
+                byte[] buf = new byte[4096];
                 //check nulls
-                if (string.IsNullOrEmpty(key))
-                    return;
+                if (socket == null)
+                    throw new ArgumentNullException(nameof(socket));
 
-                //remove outer "'s if present(if requests are made through the url of the browser)
-                if (key[0] == '\"' && key[^1] == '\"')
+                //declare temptorary buffer
+                ArraySegment<byte> buffer = new ArraySegment<byte>(buf);
+
+                //temporary receive result
+                WebSocketReceiveResult res;
+
+                //get response
+                res =
+                    await socket
+                        .ReceiveAsync(buffer, CancellationToken.None)
+                        .ConfigureAwait(true);
+
+                //check the message type
+                if (!res.CloseStatus.HasValue)
                 {
-                    //get the slice without "'s
-                    key = key[1..^1];
-                }
+                    string key = string.Empty;
 
-                //verify the user
-                PlayerVerificationResponseModel playerData =
+                    key = Encoding.UTF8.GetString(new ArraySegment<byte>(buf, 0, res.Count).Array);
+
+                    //check nulls
+                    if (string.IsNullOrEmpty(key))
+                        return;
+
+                    //remove outer "'s if present(if requests are made through the url of the browser)
+                    if (key[0] == '\"' && key[^1] == '\"')
+                    {
+                        //get the slice without "'s
+                        key = key[1..^1];
+                    }
+
+                    //verify the user
+                    PlayerVerificationResponseModel playerData =
+                        await gameController
+                            .VerifyAsync(key)
+                            .ConfigureAwait(false);
+
+                    //check nulls
+                    if (playerData == null)
+                        return;
+
+                    //accept the player socket and add it to the gamecontroller list of players
                     await gameController
-                        .VerifyAsync(key)
+                        .AcceptPlayerAsync(new Player(playerData.Key, socket, playerData.PlayerId, playerData.Name))
                         .ConfigureAwait(false);
 
-                //check nulls
-                if (playerData == null)
-                    return;
-
-                //accept the player socket and add it to the gamecontroller list of players
-                await gameController
-                    .AcceptPlayerAsync(new Player(playerData.Key, socket, playerData.PlayerId, playerData.Name))
-                    .ConfigureAwait(false);
-
-                //start conversing to the socket
-                await HandleSocket(playerData.PlayerId, socket).ConfigureAwait(false);
-            }
+                    //start conversing to the socket
+                    await HandleSocket(playerData.PlayerId, socket).ConfigureAwait(false);
+                }
+            });
         }
 
         /// <summary>
@@ -250,33 +254,10 @@ namespace WebsocketGameServer.Server
                 }
             }
 
-            //disconnect player socket
-            await DisconnectWebSocketAsync(socket, receiveRes).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Disconnects a websocket asynchronously
-        /// </summary>
-        /// <param name="socket">The socket to be disconnected</param>
-        /// <returns>The task object representing the disconnection of the socket</returns>
-        private async Task DisconnectWebSocketAsync(WebSocket socket, WebSocketReceiveResult value)
-        {
-            try
-            {
-                //close socket
-                await socket.CloseAsync(value.CloseStatus.Value, value.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
-                //dispose the socket
-                socket.Dispose();
-            }
-            catch (WebSocketException e)
-            {
-
-                //TODO: error logging
-            }
-            catch (Exception)
-            {
-
-            }
+            //close socket
+            await socket.CloseAsync(receiveRes.CloseStatus.Value, receiveRes.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
+            //dispose the socket
+            socket.Dispose();
         }
     }
 }
