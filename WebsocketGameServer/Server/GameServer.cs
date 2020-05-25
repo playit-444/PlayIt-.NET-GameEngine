@@ -49,66 +49,65 @@ namespace WebsocketGameServer.Server
 
             //temporary receive result
             WebSocketReceiveResult res;
-            using (var ms = new MemoryStream())
+
+            //get response
+            res =
+                await socket
+                    .ReceiveAsync(buffer, CancellationToken.None)
+                    .ConfigureAwait(true);
+
+            var ms = new MemoryStream();
+
+            //write to memory stream
+            await ms.WriteAsync(buffer.Array, buffer.Offset, res.Count).ConfigureAwait(false);
+
+            //go to the start of the stream
+            ms.Seek(0, SeekOrigin.Begin);
+
+            //check the message type
+            if (!res.CloseStatus.HasValue)
             {
-                do
+                string key = string.Empty;
+
+                //read the content from the stream
+                using (var reader = new StreamReader(ms, Encoding.UTF8))
                 {
-                    //get response
-                    res =
-                        await socket
-                            .ReceiveAsync(buffer, CancellationToken.None)
-                            .ConfigureAwait(true);
-
-                    //write to memory stream
-                    ms.Write(buffer.Array, buffer.Offset, res.Count);
-                } while (!res.EndOfMessage);
-
-                //go to the start of the stream
-                ms.Seek(0, SeekOrigin.Begin);
-
-                //check the message type
-                if (res.MessageType == WebSocketMessageType.Text)
-                {
-                    string key = string.Empty;
-
-                    //read the content from the stream
-                    using (var reader = new StreamReader(ms, Encoding.UTF8))
-                    {
-                        key =
-                            await reader
-                                .ReadToEndAsync()
-                                .ConfigureAwait(false);
-                    }
-
-                    //check nulls
-                    if (string.IsNullOrEmpty(key))
-                        return;
-
-                    //remove outer "'s if present(if requests are made through the url of the browser)
-                    if (key[0] == '\"' && key[^1] == '\"')
-                    {
-                        //get the slice without "'s
-                        key = key[1..^1];
-                    }
-
-                    //verify the user
-                    PlayerVerificationResponseModel playerData =
-                        await gameController
-                            .VerifyAsync(key)
+                    key =
+                        await reader
+                            .ReadToEndAsync()
                             .ConfigureAwait(false);
+                }
 
-                    //check nulls
-                    if (playerData == null)
-                        return;
+                await ms.DisposeAsync().ConfigureAwait(false);
 
-                    //accept the player socket and add it to the gamecontroller list of players
+                //check nulls
+                if (string.IsNullOrEmpty(key))
+                    return;
+
+                //remove outer "'s if present(if requests are made through the url of the browser)
+                if (key[0] == '\"' && key[^1] == '\"')
+                {
+                    //get the slice without "'s
+                    key = key[1..^1];
+                }
+
+                //verify the user
+                PlayerVerificationResponseModel playerData =
                     await gameController
-                        .AcceptPlayerAsync(new Player(playerData.Key, socket, playerData.PlayerId, playerData.Name))
+                        .VerifyAsync(key)
                         .ConfigureAwait(false);
 
-                    //start conversing to the socket
-                    await HandleSocket(playerData.PlayerId, socket).ConfigureAwait(false);
-                }
+                //check nulls
+                if (playerData == null)
+                    return;
+
+                //accept the player socket and add it to the gamecontroller list of players
+                await gameController
+                    .AcceptPlayerAsync(new Player(playerData.Key, socket, playerData.PlayerId, playerData.Name))
+                    .ConfigureAwait(false);
+
+                //start conversing to the socket
+                await HandleSocket(playerData.PlayerId, socket).ConfigureAwait(false);
             }
         }
 
