@@ -3,9 +3,9 @@ using WebsocketGameServer.Data.Game.Player;
 
 namespace WebsocketGameServer.Controllers
 {
-    public interface IPlayerController
+    public interface IPlayerVerifier<T> where T : class
     {
-        Task<bool> VerifyAsync(string jwtToken);
+        Task<T> VerifyAsync(string token);
         Task AcceptPlayerAsync(IPlayer player);
     }
 }

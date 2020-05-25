@@ -13,11 +13,11 @@ using WebsocketGameServer.Managers.Room;
 
 namespace WebsocketGameServer.Controllers
 {
-    public class PlayerController
+    public class GameController : IPlayerVerifier<PlayerVerificationResponseModel>
     {
         public HashSet<IPlayer> Players { get; private set; }
 
-        public PlayerController(IRoomManager roomMan, IVerificationService<PlayerVerificationResponseModel> VerificationService)
+        public GameController(IRoomManager roomMan, IVerificationService<PlayerVerificationResponseModel> VerificationService)
         {
             verificationService = VerificationService;
             roomManager = roomMan;

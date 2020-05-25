@@ -25,5 +25,16 @@ namespace WebsocketGameServer.Data.Game.Player
         public WebSocket Socket { get; set; }
         public long PlayerID { get; set; }
         public string Name { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Player player &&
+                   PlayerID == player.PlayerID;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(PlayerID);
+        }
     }
 }

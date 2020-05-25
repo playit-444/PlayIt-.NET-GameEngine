@@ -9,20 +9,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebsocketGameServer.Controllers;
 using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Models.Args;
 using WebsocketGameServer.Models.Player;
 
 namespace WebsocketGameServer.Server
 {
     public class GameServer
     {
-        private PlayerController playerController;
+        private GameController gameController;
 
-        public GameServer(PlayerController playerController)
+        public GameServer(GameController controller)
         {
-            this.playerController = playerController;
+            this.gameController = controller;
         }
 
-        public async void HandleNewSocket(HttpContext context, WebSocket socket)
+        public async void HandleNewSocketAsync(HttpContext context, WebSocket socket)
         {
             if (socket == null)
                 return;
@@ -65,18 +66,30 @@ namespace WebsocketGameServer.Server
                     }
 
                     PlayerVerificationResponseModel playerData =
-                        await playerController
+                        await gameController
                             .VerifyAsync(key)
                             .ConfigureAwait(false);
 
                     if (playerData == null)
                         return;
 
-                    await playerController
+                    await gameController
                         .AcceptPlayerAsync(new Player(playerData.Key, socket, playerData.PlayerId, playerData.Name))
                         .ConfigureAwait(false);
+
+                    await HandleSocket(playerData.PlayerId, socket).ConfigureAwait(false);
                 }
             }
+        }
+
+        //TODO:
+        public async void HandleNewRoomStateAsync(RoomArgs args) { 
+        
+        }
+
+
+        private async Task HandleSocket(long id, WebSocket socket) { 
+        
         }
     }
 }

@@ -23,7 +23,7 @@ namespace WebsocketGameServer
     {
         WebsocketGameServer.Server.GameServer server =
             new WebsocketGameServer.Server.GameServer(
-                new Controllers.PlayerController(
+                new Controllers.GameController(
                     new RoomManager(),
                     new PlayerVerificationService()));
 
@@ -58,7 +58,7 @@ namespace WebsocketGameServer
             };
 
             //subscribe to socket event
-            SocketJoin += server.HandleNewSocket;
+            SocketJoin += server.HandleNewSocketAsync;
 
             app.UseWebSockets(opts);
 

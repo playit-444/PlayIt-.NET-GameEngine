@@ -1,21 +1,18 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {}
+    "C:\\Users\\Peter\\source\\playit\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {}
   },
   "projects": {
-    "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {
+    "C:\\Users\\Peter\\source\\playit\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
+        "projectUniqueName": "C:\\Users\\Peter\\source\\playit\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
         "projectName": "WebsocketGameServer",
-        "projectPath": "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
+        "projectPath": "C:\\Users\\Peter\\source\\playit\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\WebsocketGameServer.csproj",
         "packagesPath": "C:\\Users\\Peter\\.nuget\\packages\\",
-        "outputPath": "D:\\Github Projects\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\obj\\",
+        "outputPath": "C:\\Users\\Peter\\source\\playit\\PlayIt-.NET-GameEngine\\WebsocketGameServer\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
-        ],
         "configFilePaths": [
           "C:\\Users\\Peter\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -51,11 +48,7 @@
             },
             "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
               "target": "Package",
-              "version": "[3.1.3, )"
-            },
-            "Newtonsoft.Json": {
-              "target": "Package",
-              "version": "[12.0.3, )"
+              "version": "[3.1.1, )"
             }
           },
           "imports": [
@@ -76,7 +69,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.102\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.200\\RuntimeIdentifierGraph.json"
         }
       }
     }
