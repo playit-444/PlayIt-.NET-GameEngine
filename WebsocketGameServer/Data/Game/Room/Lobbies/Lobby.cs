@@ -40,7 +40,7 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
 
         public virtual async Task<bool> PlayerCanJoinRoom(IPlayer player)
         {
-            if (player == null || player.PlayerID.Equals(0) || player.Socket == null)
+            if (player == null || player.PlayerId.Equals(0) || player.Socket == null)
                 return false;
 
             if (Players.Count >= MaxPlayersNeededToStart)
@@ -80,6 +80,11 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        public virtual void ReceiveMessage(IRoomMessage message)
+        {
+            
         }
     }
 }

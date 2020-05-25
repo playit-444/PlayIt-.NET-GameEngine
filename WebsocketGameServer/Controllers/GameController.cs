@@ -15,24 +15,19 @@ using WebsocketGameServer.Services.Room;
 
 namespace WebsocketGameServer.Controllers
 {
-    public class GameController : IPlayerVerifier<PlayerVerificationResponseModel>
+    public class GameController : IGameController
     {
+        private readonly IVerificationService<PlayerVerificationResponseModel> verificationService;
+
         public HashSet<IPlayer> Players { get; private set; }
 
-        public GameController(IRoomManager roomMan,
-            IVerificationService<PlayerVerificationResponseModel> VerificationService, IIdentifierGenerator idGenerator,
-            LobbyService lobbyService)
+        public IRoomManager RoomManager { get; }
+
+        public GameController(IRoomManager roomManager, IVerificationService<PlayerVerificationResponseModel> VerificationService)
         {
             verificationService = VerificationService;
-            roomManager = roomMan;
-            _idGenerator = idGenerator;
-            _lobbyService = lobbyService;
+            RoomManager = roomManager;
         }
-
-        private readonly IVerificationService<PlayerVerificationResponseModel> verificationService;
-        private readonly IRoomManager roomManager;
-        private readonly IIdentifierGenerator _idGenerator;
-        private readonly LobbyService _lobbyService;
 
         public async Task<PlayerVerificationResponseModel> VerifyAsync(string token)
         {

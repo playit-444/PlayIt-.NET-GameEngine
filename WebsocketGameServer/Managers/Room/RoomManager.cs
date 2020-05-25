@@ -20,6 +20,8 @@ namespace WebsocketGameServer.Managers.Room
         /// </summary>
         public IDictionary<IPlayer, ICollection<IRoom>> PlayerRooms { get; private set; }
 
+        public event IRoomManager.RoomHandler RoomStateChanged;
+
         /// <summary>
         /// Add a player to a specific lobby
         /// Also getting added to playerrooms for fast lookup
@@ -62,6 +64,15 @@ namespace WebsocketGameServer.Managers.Room
             {
                 PlayerRooms[player].Remove(Rooms[roomId]);
                 Rooms[roomId].Players.Remove(player);
+
+                if (Rooms[roomId].Players.Count < 1)
+                {
+                    RemoveRoom(roomId);
+                    return true;
+                }
+
+                //TODO: events
+
                 return true;
             }
 

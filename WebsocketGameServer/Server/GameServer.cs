@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebsocketGameServer.Controllers;
 using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Data.Game.Room;
+using WebsocketGameServer.Data.Messages;
 using WebsocketGameServer.Models.Args;
 using WebsocketGameServer.Models.Player;
 
@@ -16,9 +18,10 @@ namespace WebsocketGameServer.Server
 {
     public class GameServer
     {
-        private GameController gameController;
+        private IGameController gameController;
 
-        public GameServer(GameController controller)
+
+        public GameServer(IGameController controller)
         {
             this.gameController = controller;
         }
@@ -83,13 +86,68 @@ namespace WebsocketGameServer.Server
         }
 
         //TODO:
-        public async void HandleNewRoomStateAsync(RoomArgs args) { 
-        
+        public async void HandleNewRoomStateAsync(RoomArgs args)
+        {
+
         }
 
 
-        private async Task HandleSocket(long id, WebSocket socket) { 
-        
+        private async Task HandleSocket(long id, WebSocket socket)
+        {
+            ArraySegment<byte> segment = new ArraySegment<byte>(new byte[8192]);
+
+            while (socket.State.Equals(WebSocketState.Open))
+            {
+                var msg = await socket.ReceiveAsync(segment, CancellationToken.None).ConfigureAwait(false);
+                if (msg.MessageType.Equals(WebSocketMessageType.Text))
+                {
+                    string message = Encoding.UTF8.GetString(segment).Trim();
+                    if (string.IsNullOrEmpty(message))
+                        continue;
+
+                    string[] args = message.Split('|');
+                    if (args.Length < 1 || string.IsNullOrEmpty(args[0]))
+                        continue;
+
+                    if (args[0].ToUpperInvariant().Equals("CREATE", StringComparison.InvariantCultureIgnoreCase))
+                    { 
+                        //gamecontroller lobbyservice create call
+                    }
+
+                    IRoom room;
+                    if (gameController.RoomManager.Rooms.TryGetValue(args[0], out room))
+                    {
+                        if (!string.IsNullOrEmpty(args[1]))
+                        {
+                            switch (args[1].ToUpperInvariant())
+                            {
+                                case "JOIN":
+                                    if (gameController.Players.TryGetValue(new Player(id), out IPlayer playerData) &&
+                                        await room.PlayerCanJoinRoom(playerData).ConfigureAwait(false))
+                                        await gameController.RoomManager.AddPlayer(playerData, room.RoomID).ConfigureAwait(false);
+                                    break;
+                                case "LEAVE":
+                                    await gameController.RoomManager.RemovePlayer(new Player(id), room.RoomID).ConfigureAwait(false);
+                                    break;
+                                default:
+                                    gameController.RoomManager.Rooms[args[0]].ReceiveMessage(new RoomMessage(id, args[0], args[1..]));
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            ICollection<IRoom> rooms;
+            IPlayer player = new Player(id);
+            if (gameController.RoomManager.PlayerRooms.TryGetValue(player, out rooms) &&
+                rooms != null)
+            {
+                foreach (string roomId in rooms.Select(x => x.RoomID))
+                {
+                    await gameController.RoomManager.RemovePlayer(player, roomId).ConfigureAwait(false);
+                }
+            }
         }
     }
 }
