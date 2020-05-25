@@ -66,7 +66,8 @@ namespace WebsocketGameServer
                     if (context.WebSockets.IsWebSocketRequest)
                     {
                         WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync().ConfigureAwait(false);
-                        SocketJoin?.Invoke(context, webSocket);
+                        //SocketJoin?.Invoke(context, webSocket);
+                        server.HandleNewSocketAsync(context, webSocket);
                     }
                     else
                     {
