@@ -40,12 +40,13 @@ namespace WebsocketGameServer.Server
         /// <param name="socket">The socket attempting to get accepted</param>
         public async void HandleNewSocketAsync(HttpContext context, WebSocket socket)
         {
+            byte[] buf = new byte[4096];
             //check nulls
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
 
             //declare temptorary buffer
-            ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[4096]);
+            ArraySegment<byte> buffer = new ArraySegment<byte>(buf);
 
             //temporary receive result
             WebSocketReceiveResult res;
@@ -56,29 +57,12 @@ namespace WebsocketGameServer.Server
                     .ReceiveAsync(buffer, CancellationToken.None)
                     .ConfigureAwait(true);
 
-            var ms = new MemoryStream();
-
-            //write to memory stream
-            await ms.WriteAsync(buffer.Array, buffer.Offset, res.Count).ConfigureAwait(false);
-
-            //go to the start of the stream
-            ms.Seek(0, SeekOrigin.Begin);
-
             //check the message type
             if (!res.CloseStatus.HasValue)
             {
                 string key = string.Empty;
 
-                //read the content from the stream
-                using (var reader = new StreamReader(ms, Encoding.UTF8))
-                {
-                    key =
-                        await reader
-                            .ReadToEndAsync()
-                            .ConfigureAwait(false);
-                }
-
-                await ms.DisposeAsync().ConfigureAwait(false);
+                key =Encoding.UTF8.GetString(new ArraySegment<byte>(buf, 0, res.Count).Array);
 
                 //check nulls
                 if (string.IsNullOrEmpty(key))
