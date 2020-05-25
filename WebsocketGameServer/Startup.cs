@@ -31,7 +31,7 @@ namespace WebsocketGameServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+
         }
 
         public delegate void SocketHandler(HttpContext context, WebSocket socket);
@@ -86,8 +86,6 @@ namespace WebsocketGameServer
                 .AllowAnyMethod()
                 .AllowAnyHeader()
             );
-
-            app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
