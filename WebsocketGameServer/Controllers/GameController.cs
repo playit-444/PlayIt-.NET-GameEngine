@@ -8,8 +8,10 @@ using WebsocketGameServer.Services.Security;
 using WebsocketGameServer.Managers;
 using WebsocketGameServer.Data.Game.Player;
 using System.Net.WebSockets;
+using GameServer.Services.Generators;
 using WebsocketGameServer.Models.Player;
 using WebsocketGameServer.Managers.Room;
+using WebsocketGameServer.Services.Room;
 
 namespace WebsocketGameServer.Controllers
 {
@@ -17,13 +19,20 @@ namespace WebsocketGameServer.Controllers
     {
         public HashSet<IPlayer> Players { get; private set; }
 
-        public GameController(IRoomManager roomMan, IVerificationService<PlayerVerificationResponseModel> VerificationService)
+        public GameController(IRoomManager roomMan,
+            IVerificationService<PlayerVerificationResponseModel> VerificationService, IIdentifierGenerator idGenerator,
+            LobbyService lobbyService)
         {
             verificationService = VerificationService;
             roomManager = roomMan;
+            _idGenerator = idGenerator;
+            _lobbyService = lobbyService;
         }
+
         private readonly IVerificationService<PlayerVerificationResponseModel> verificationService;
         private readonly IRoomManager roomManager;
+        private readonly IIdentifierGenerator _idGenerator;
+        private readonly LobbyService _lobbyService;
 
         public async Task<PlayerVerificationResponseModel> VerifyAsync(string token)
         {

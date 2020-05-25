@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Data.Messages;
 
 namespace WebsocketGameServer.Data.Game.Room.Lobbies
 {
@@ -13,7 +13,8 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
     {
         private bool isDisposed = false; // To detect redundant dispose calls
 
-        public Lobby(string roomID, string name, int gameType, IPlayer[] initialPlayers, byte minPlayersNeededToStart, byte maxPlayersNeededToStart)
+        public Lobby(string roomID, string name, int gameType, IPlayer[] initialPlayers, byte minPlayersNeededToStart,
+            byte maxPlayersNeededToStart)
         {
             RoomID = roomID;
             Name = name;
@@ -29,6 +30,7 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
         public int GameType { get; private set; }
         public string Name { get; private set; }
         public IDictionary<IPlayer, bool> PlayerReadyState { get; private set; }
+        public event IRoom.RoomHandler RoomStateChanged;
         public string RoomID { get; private set; }
         public HashSet<IPlayer> Players { get; private set; }
 
@@ -41,10 +43,18 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
             if (player == null || player.PlayerID.Equals(0) || player.Socket == null)
                 return false;
 
-            if (Players.Count >= (int)MaxPlayersNeededToStart)
+            if (Players.Count >= MaxPlayersNeededToStart)
                 return false;
 
             return true;
+        }
+
+        public void ReceiveMessage(IRoomMessage message)
+        {
+            if (message?.Args == null || message.Args.Length < 1)
+                return;
+
+            throw new NotImplementedException();
         }
 
         protected virtual void Dispose(bool disposing)
