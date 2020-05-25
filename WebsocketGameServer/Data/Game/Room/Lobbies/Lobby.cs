@@ -81,10 +81,5 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
-        public virtual void ReceiveMessage(IRoomMessage message)
-        {
-            
-        }
     }
 }
