@@ -29,6 +29,7 @@ namespace WebsocketGameServer.Controllers
             RoomManager = roomManager;
             IdentifierGenerator = identifierGenerator;
             LobbyService = lobbyService;
+            Players = new HashSet<IPlayer>();
         }
 
         public async Task<PlayerVerificationResponseModel> VerifyAsync(string token)
