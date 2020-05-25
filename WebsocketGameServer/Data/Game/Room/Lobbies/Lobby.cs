@@ -37,7 +37,7 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
 
         public byte MaxPlayersNeededToStart { get; private set; }
 
-        public virtual async Task<bool> PlayerCanJoinRoom(IPlayer player)
+        public virtual bool PlayerCanJoinRoom(IPlayer player)
         {
             if (player == null || player.PlayerId.Equals(0) || player.Socket == null)
                 return false;

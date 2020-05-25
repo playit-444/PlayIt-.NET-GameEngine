@@ -25,7 +25,7 @@ namespace WebsocketGameServer.Data.Game.Room
         /// </summary>
         /// <param name="player">The player that is attempting to join the room</param>
         /// <returns>Whether the player is capable of joining the room</returns>
-        public Task<bool> PlayerCanJoinRoom(IPlayer player);
+        public bool PlayerCanJoinRoom(IPlayer player);
 
         public void ReceiveMessage(IRoomMessage message);
     }

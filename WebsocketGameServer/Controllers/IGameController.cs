@@ -12,9 +12,24 @@ namespace WebsocketGameServer.Controllers
 {
     public interface IGameController : IPlayerVerifier<PlayerVerificationResponseModel>
     {
+        /// <summary>
+        /// The room manager of the game controller
+        /// </summary>
         public IRoomManager RoomManager { get; }
+
+        /// <summary>
+        /// The list of players currently connected, indexed by their respective id
+        /// </summary>
         public HashSet<IPlayer> Players { get; }
+
+        /// <summary>
+        /// The generator for making 'unique' ids for rooms mainly
+        /// </summary>
         public IIdentifierGenerator IdentifierGenerator { get; }
-        public LobbyService LobbyService { get; }
+
+        /// <summary>
+        /// The lobby service responsible for creating lobby gamerooms
+        /// </summary>
+        public ILobbyService LobbyService { get; }
     }
 }

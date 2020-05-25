@@ -16,12 +16,14 @@ namespace WebsocketGameServer.Controllers
         public HashSet<IPlayer> Players { get; private set; }
 
         public IIdentifierGenerator IdentifierGenerator { get; private set; }
-        public LobbyService LobbyService { get; }
+        public ILobbyService LobbyService { get; }
         public IRoomManager RoomManager { get; }
 
-        public GameController(IRoomManager roomManager,
+        public GameController(
+            IRoomManager roomManager,
             IVerificationService<PlayerVerificationResponseModel> VerificationService,
-            IIdentifierGenerator identifierGenerator, LobbyService lobbyService)
+            IIdentifierGenerator identifierGenerator,
+            ILobbyService lobbyService)
         {
             verificationService = VerificationService;
             RoomManager = roomManager;
