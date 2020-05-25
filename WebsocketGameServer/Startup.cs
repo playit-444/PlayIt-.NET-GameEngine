@@ -55,7 +55,7 @@ namespace WebsocketGameServer
             };
 
             //subscribe to socket event
-            SocketJoin += server.HandleNewSocketAsync;
+            //SocketJoin += server.HandleNewSocketAsync;
 
             app.UseWebSockets(opts);
 
@@ -67,7 +67,7 @@ namespace WebsocketGameServer
                     {
                         WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync().ConfigureAwait(false);
                         //SocketJoin?.Invoke(context, webSocket);
-                        server.HandleNewSocketAsync(context, webSocket);
+                        await server.HandleNewSocketAsync(context, webSocket).ConfigureAwait(false);
                     }
                     else
                     {

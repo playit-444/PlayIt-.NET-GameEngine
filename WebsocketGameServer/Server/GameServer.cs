@@ -38,7 +38,7 @@ namespace WebsocketGameServer.Server
         /// </summary>
         /// <param name="context">The http context that the socket connected through</param>
         /// <param name="socket">The socket attempting to get accepted</param>
-        public async void HandleNewSocketAsync(HttpContext context, WebSocket socket)
+        public async Task HandleNewSocketAsync(HttpContext context, WebSocket socket)
         {
             byte[] buf = new byte[4096];
             //check nulls
