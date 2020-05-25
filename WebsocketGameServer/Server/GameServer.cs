@@ -101,6 +101,13 @@ namespace WebsocketGameServer.Server
             //keep receiving data while the socket is open
             while (!res.CloseStatus.HasValue)
             {
+                //TODO TEMP
+                var encoded = Encoding.UTF8.GetBytes("{\"name\":\"John\", \"age\":31, \"city\":\"New York\"}");
+                var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
+                await socket.SendAsync(buffers, WebSocketMessageType.Text, true, CancellationToken.None)
+                    .ConfigureAwait(false);
+
+
                 //accept text only as of now //TODO: swap to binary?
                 if (res.MessageType.Equals(WebSocketMessageType.Text))
                 {
@@ -123,7 +130,8 @@ namespace WebsocketGameServer.Server
 
                     //if not, treat all requests as a room request
                     IRoom room;
-                    if (gameController.RoomManager.Rooms != null && gameController.RoomManager.Rooms.TryGetValue(args[0], out room))
+                    if (gameController.RoomManager.Rooms != null &&
+                        gameController.RoomManager.Rooms.TryGetValue(args[0], out room))
                     {
                         //check nulls
                         if (!string.IsNullOrEmpty(args[1]))
@@ -265,6 +273,13 @@ namespace WebsocketGameServer.Server
             //capture the message from the socket
             WebSocketReceiveResult receiveRes = await socket
                 .ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None).ConfigureAwait(false);
+
+            //TODO TEMP TEST
+            var encoded = Encoding.UTF8.GetBytes("asdasdas");
+            var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
+            await socket.SendAsync(buffers, WebSocketMessageType.Text, true, CancellationToken.None)
+                .ConfigureAwait(false);
+
 
             //keep receiving data while the socket is open
             while (!receiveRes.CloseStatus.HasValue)
