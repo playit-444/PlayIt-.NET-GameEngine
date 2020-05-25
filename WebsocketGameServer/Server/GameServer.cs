@@ -70,18 +70,21 @@ namespace WebsocketGameServer.Server
                 if (string.IsNullOrEmpty(key))
                     return;
 
-                //remove outer "'s if present(if requests are made through the url of the browser)
+
+                //TODO under dosent work so this is a quick fix. think it something about empty chars at end
+                key = key.Split("\"")[1];
+
+                /*//remove outer "'s if present(if requests are made through the url of the browser)
                 if (key[0] == '\"' && key[^1] == '\"')
                 {
                     //get the slice without "'s
                     key = key[1..^1];
-                }
+                }*/
 
                 //verify the user
                 PlayerVerificationResponseModel playerData =
                     await gameController
-                        .VerifyAsync(key)
-                        .ConfigureAwait(false);
+                        .VerifyAsync(key).ConfigureAwait(false);
 
                 //check nulls
                 if (playerData == null || playerData.PlayerId.Equals(0))
@@ -120,7 +123,7 @@ namespace WebsocketGameServer.Server
 
                     //if not, treat all requests as a room request
                     IRoom room;
-                    if (gameController.RoomManager.Rooms.TryGetValue(args[0], out room))
+                    if (gameController.RoomManager.Rooms != null && gameController.RoomManager.Rooms.TryGetValue(args[0], out room))
                     {
                         //check nulls
                         if (!string.IsNullOrEmpty(args[1]))
@@ -129,22 +132,27 @@ namespace WebsocketGameServer.Server
                             switch (args[1].ToUpperInvariant())
                             {
                                 case "JOIN":
-                                    if (gameController.Players.TryGetValue(new Player(playerId), out IPlayer playerData) &&
+                                    if (gameController.Players.TryGetValue(new Player(playerId),
+                                            out IPlayer playerData) &&
                                         room.PlayerCanJoinRoom(playerData))
-                                        await gameController.RoomManager.AddPlayer(playerData, room.RoomID).ConfigureAwait(false);
+                                        await gameController.RoomManager.AddPlayer(playerData, room.RoomID)
+                                            .ConfigureAwait(false);
                                     break;
                                 case "LEAVE":
-                                    await gameController.RoomManager.RemovePlayer(new Player(playerId), room.RoomID).ConfigureAwait(false);
+                                    await gameController.RoomManager.RemovePlayer(new Player(playerId), room.RoomID)
+                                        .ConfigureAwait(false);
                                     break;
                                 default:
-                                    gameController.RoomManager.Rooms[args[0]].ReceiveMessage(new RoomMessage(playerId, args[0], args[1..]));
+                                    gameController.RoomManager.Rooms[args[0]]
+                                        .ReceiveMessage(new RoomMessage(playerId, args[0], args[1..]));
                                     break;
                             }
                         }
                     }
                 }
 
-                res = await socket.ReceiveAsync(new ArraySegment<byte>(buf), CancellationToken.None).ConfigureAwait(false);
+                res = await socket.ReceiveAsync(new ArraySegment<byte>(buf), CancellationToken.None)
+                    .ConfigureAwait(false);
             }
 
             //socket closed, remove player from rooms and disconnect socket
@@ -163,7 +171,8 @@ namespace WebsocketGameServer.Server
             }
 
             //close socket
-            await socket.CloseAsync(res.CloseStatus.Value, res.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
+            await socket.CloseAsync(res.CloseStatus.Value, res.CloseStatusDescription, CancellationToken.None)
+                .ConfigureAwait(false);
             //dispose the socket
             socket.Dispose();
         }
@@ -231,7 +240,7 @@ namespace WebsocketGameServer.Server
             byte[] bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload));
             request.ContentLength = bytes.Length;
 
-            //write&flush content to the uri endpoint 
+            //write&flush content to the uri endpoint
             using (Stream s = await request.GetRequestStreamAsync().ConfigureAwait(false))
             {
                 await s.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
@@ -254,7 +263,8 @@ namespace WebsocketGameServer.Server
             byte[] buffer = new byte[4096];
 
             //capture the message from the socket
-            WebSocketReceiveResult receiveRes = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None).ConfigureAwait(false);
+            WebSocketReceiveResult receiveRes = await socket
+                .ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None).ConfigureAwait(false);
 
             //keep receiving data while the socket is open
             while (!receiveRes.CloseStatus.HasValue)
@@ -292,20 +302,24 @@ namespace WebsocketGameServer.Server
                                 case "JOIN":
                                     if (gameController.Players.TryGetValue(new Player(id), out IPlayer playerData) &&
                                         room.PlayerCanJoinRoom(playerData))
-                                        await gameController.RoomManager.AddPlayer(playerData, room.RoomID).ConfigureAwait(false);
+                                        await gameController.RoomManager.AddPlayer(playerData, room.RoomID)
+                                            .ConfigureAwait(false);
                                     break;
                                 case "LEAVE":
-                                    await gameController.RoomManager.RemovePlayer(new Player(id), room.RoomID).ConfigureAwait(false);
+                                    await gameController.RoomManager.RemovePlayer(new Player(id), room.RoomID)
+                                        .ConfigureAwait(false);
                                     break;
                                 default:
-                                    gameController.RoomManager.Rooms[args[0]].ReceiveMessage(new RoomMessage(id, args[0], args[1..]));
+                                    gameController.RoomManager.Rooms[args[0]]
+                                        .ReceiveMessage(new RoomMessage(id, args[0], args[1..]));
                                     break;
                             }
                         }
                     }
                 }
 
-                receiveRes = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None).ConfigureAwait(false);
+                receiveRes = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None)
+                    .ConfigureAwait(false);
             }
 
             //socket closed, remove player from rooms and disconnect socket
@@ -324,7 +338,9 @@ namespace WebsocketGameServer.Server
             }
 
             //close socket
-            await socket.CloseAsync(receiveRes.CloseStatus.Value, receiveRes.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
+            await socket
+                .CloseAsync(receiveRes.CloseStatus.Value, receiveRes.CloseStatusDescription, CancellationToken.None)
+                .ConfigureAwait(false);
             //dispose the socket
             socket.Dispose();
         }
