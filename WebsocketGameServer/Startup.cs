@@ -19,7 +19,9 @@ namespace WebsocketGameServer
             new WebsocketGameServer.Server.GameServer(
                 new Controllers.GameController(
                     new RoomManager(),
-                    new PlayerVerificationService(), new HexIdGenerator(), new LobbyService()));
+                    new PlayerVerificationService(),
+                    new HexIdGenerator(),
+                    new LobbyService()));
 
         public Startup(IConfiguration configuration)
         {
@@ -31,7 +33,7 @@ namespace WebsocketGameServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddControllers();
         }
 
         public delegate void SocketHandler(HttpContext context, WebSocket socket);
@@ -49,7 +51,7 @@ namespace WebsocketGameServer
             WebSocketOptions opts = new WebSocketOptions()
             {
                 KeepAliveInterval = TimeSpan.FromSeconds(120),
-                ReceiveBufferSize = 8192
+                ReceiveBufferSize = 4096
             };
 
             //subscribe to socket event

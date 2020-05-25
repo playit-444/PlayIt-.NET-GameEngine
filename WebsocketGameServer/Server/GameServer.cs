@@ -42,7 +42,7 @@ namespace WebsocketGameServer.Server
         {
             //check nulls
             if (socket == null)
-                throw new ArgumentNullException(nameof(socket)) ;
+                throw new ArgumentNullException(nameof(socket));
 
             //declare temptorary buffer
             ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[4096]);
@@ -195,18 +195,19 @@ namespace WebsocketGameServer.Server
         private async Task HandleSocket(long id, WebSocket socket)
         {
             //buffer
-            ArraySegment<byte> segment = new ArraySegment<byte>(new byte[8192]);
+            byte[] buffer = new byte[4096];
+
+            //capture the message from the socket
+            WebSocketReceiveResult receiveRes = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None).ConfigureAwait(false);
 
             //keep receiving data while the socket is open
-            while (socket.State.Equals(WebSocketState.Open))
+            while (!receiveRes.CloseStatus.HasValue)
             {
-                //capture the message from the socket
-                var msg = await socket.ReceiveAsync(segment, CancellationToken.None).ConfigureAwait(false);
-                //accept text only as of now //TODO: swap to binary
-                if (msg.MessageType.Equals(WebSocketMessageType.Text))
+                //accept text only as of now //TODO: swap to binary?
+                if (receiveRes.MessageType.Equals(WebSocketMessageType.Text))
                 {
                     //get the string content and skip if that content turns out to be null
-                    string message = Encoding.UTF8.GetString(segment).Trim();
+                    string message = Encoding.UTF8.GetString(buffer).Trim();
                     if (string.IsNullOrEmpty(message))
                         continue;
 
@@ -247,6 +248,8 @@ namespace WebsocketGameServer.Server
                         }
                     }
                 }
+
+                receiveRes = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None).ConfigureAwait(false);
             }
 
             //socket closed, remove player from rooms and disconnect socket
@@ -265,7 +268,7 @@ namespace WebsocketGameServer.Server
             }
 
             //disconnect player socket
-            await DisconnectWebSocketAsync(socket).ConfigureAwait(false);
+            await DisconnectWebSocketAsync(socket, receiveRes).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -273,18 +276,23 @@ namespace WebsocketGameServer.Server
         /// </summary>
         /// <param name="socket">The socket to be disconnected</param>
         /// <returns>The task object representing the disconnection of the socket</returns>
-        private async Task DisconnectWebSocketAsync(WebSocket socket)
+        private async Task DisconnectWebSocketAsync(WebSocket socket, WebSocketReceiveResult value)
         {
             try
             {
                 //close socket
-                await socket.CloseAsync(WebSocketCloseStatus.Empty, string.Empty, CancellationToken.None).ConfigureAwait(false);
+                await socket.CloseAsync(value.CloseStatus.Value, value.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
                 //dispose the socket
                 socket.Dispose();
             }
+            catch (WebSocketException e)
+            {
+
+                //TODO: error logging
+            }
             catch (Exception)
             {
-                //TODO: error logging
+
             }
         }
     }
