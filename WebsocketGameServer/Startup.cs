@@ -1,20 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.WebSockets;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using WebsocketGameServer.Managers;
 using WebsocketGameServer.Managers.Room;
-using WebsocketGameServer.Server;
+using WebsocketGameServer.Services.Generators;
+using WebsocketGameServer.Services.Room;
 using WebsocketGameServer.Services.Security;
 
 namespace WebsocketGameServer
@@ -25,7 +19,7 @@ namespace WebsocketGameServer
             new WebsocketGameServer.Server.GameServer(
                 new Controllers.GameController(
                     new RoomManager(),
-                    new PlayerVerificationService()));
+                    new PlayerVerificationService(), new HexIdGenerator(), new LobbyService()));
 
         public Startup(IConfiguration configuration)
         {
@@ -41,6 +35,7 @@ namespace WebsocketGameServer
         }
 
         public delegate void SocketHandler(HttpContext context, WebSocket socket);
+
         public event SocketHandler SocketJoin;
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -80,7 +75,6 @@ namespace WebsocketGameServer
                 {
                     await next().ConfigureAwait(true);
                 }
-
             });
 
             app.UseHttpsRedirection();
@@ -88,17 +82,14 @@ namespace WebsocketGameServer
             app.UseRouting();
 
             app.UseCors(opts => opts
-                        .AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader()
             );
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }
 }

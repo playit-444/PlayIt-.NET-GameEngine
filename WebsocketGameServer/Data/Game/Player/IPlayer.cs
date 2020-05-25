@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Net.WebSockets;
+﻿using System.Net.WebSockets;
 
 namespace WebsocketGameServer.Data.Game.Player
 {
