@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Data.Messages;
 
 namespace WebsocketGameServer.Data.Game.Room.Lobbies
 {
@@ -38,7 +39,7 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
 
         public virtual async Task<bool> PlayerCanJoinRoom(IPlayer player)
         {
-            if (player == null || player.PlayerID.Equals(0) || player.Socket == null)
+            if (player == null || player.PlayerId.Equals(0) || player.Socket == null)
                 return false;
 
             if (Players.Count >= (int)MaxPlayersNeededToStart)
@@ -70,6 +71,11 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        public virtual void ReceiveMessage(IRoomMessage message)
+        {
+            
         }
     }
 }

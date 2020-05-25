@@ -11,17 +11,6 @@ namespace WebsocketGameServer.Data.Game.Room
     public interface IRoom
     {
         /// <summary>
-        /// Delegate for defining methods capable of handling room state events
-        /// </summary>
-        /// <param name="args">The room arguments of the event</param>
-        public delegate void RoomHandler(RoomArgs args);
-
-        /// <summary>
-        /// The event being invoked upon the room changing state
-        /// </summary>
-        public event RoomHandler RoomStateChanged;
-
-        /// <summary>
         /// The randomly generated ID of the room
         /// </summary>
         string RoomID { get; }
