@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using Org.BouncyCastle.Ocsp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -10,7 +13,9 @@ using System.Threading.Tasks;
 using WebsocketGameServer.Controllers;
 using WebsocketGameServer.Data.Game.Player;
 using WebsocketGameServer.Data.Game.Room;
+using WebsocketGameServer.Data.Game.Room.Lobbies;
 using WebsocketGameServer.Data.Messages;
+using WebsocketGameServer.Data.Models.Rooms;
 using WebsocketGameServer.Models.Args;
 using WebsocketGameServer.Models.Player;
 
@@ -18,6 +23,7 @@ namespace WebsocketGameServer.Server
 {
     public class GameServer
     {
+        private readonly Uri apiUrl = new Uri("");
         private IGameController gameController;
 
 
@@ -85,10 +91,46 @@ namespace WebsocketGameServer.Server
             }
         }
 
-        //TODO:
+        /// <summary>
+        /// Sends updated room data to the api
+        /// </summary>
+        /// <param name="args">The room arguments of the room which state has been altered</param>
         public async void HandleNewRoomStateAsync(RoomArgs args)
         {
+            if (args == null || args.Room == null)
+                return;
 
+            var request = WebRequest.CreateHttp(apiUrl);
+            request.Method = "PUT";
+            request.ContentType = "application/json";
+            request.Timeout = 10000;
+
+            object payload = null;
+            if (args.Room is ILobby lobby)
+            {
+                //TODO: add check for private lobby
+
+                payload =
+                    new GameRoomData(
+                        lobby.GameType, 
+                        lobby.RoomID, 
+                        string.IsNullOrWhiteSpace(lobby.Name) ? string.Empty : lobby.Name,
+                        lobby.MaxPlayersNeededToStart,
+                        lobby.Players.Count);
+            }
+            //TODO: add other room subtypes
+
+            if (payload == null)
+                return;
+
+            byte[] bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload));
+            request.ContentLength = bytes.Length;
+
+            using (Stream s = await request.GetRequestStreamAsync().ConfigureAwait(false))
+            {
+                s.Write(bytes, 0, bytes.Length);
+                s.Close();
+            }
         }
 
 
@@ -110,7 +152,7 @@ namespace WebsocketGameServer.Server
                         continue;
 
                     if (args[0].ToUpperInvariant().Equals("CREATE", StringComparison.InvariantCultureIgnoreCase))
-                    { 
+                    {
                         //gamecontroller lobbyservice create call
                     }
 
@@ -138,15 +180,42 @@ namespace WebsocketGameServer.Server
                 }
             }
 
+            //socket closed, remove player from rooms and disconnect socket
             ICollection<IRoom> rooms;
+            //create lookup player
             IPlayer player = new Player(id);
+            //get rooms that the player is part of
             if (gameController.RoomManager.PlayerRooms.TryGetValue(player, out rooms) &&
                 rooms != null)
             {
+                //remove the player from all associated rooms
                 foreach (string roomId in rooms.Select(x => x.RoomID))
                 {
                     await gameController.RoomManager.RemovePlayer(player, roomId).ConfigureAwait(false);
                 }
+            }
+
+            //disconnect player socket
+            await DisconnectWebSocketAsync(socket).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Disconnects a websocket asynchronously
+        /// </summary>
+        /// <param name="socket">The socket to be disconnected</param>
+        /// <returns>The task object representing the disconnection of the socket</returns>
+        private async Task DisconnectWebSocketAsync(WebSocket socket)
+        {
+            try
+            {
+                //close socket
+                await socket.CloseAsync(WebSocketCloseStatus.Empty, string.Empty, CancellationToken.None).ConfigureAwait(false);
+                //dispose the socket
+                socket.Dispose();
+            }
+            catch (Exception)
+            {
+                //TODO: error logging
             }
         }
     }

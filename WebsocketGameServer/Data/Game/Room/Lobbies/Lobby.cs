@@ -75,7 +75,8 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
 
         public virtual void ReceiveMessage(IRoomMessage message)
         {
-            
+            if (message == null || string.IsNullOrEmpty(message.Action))
+                return;
         }
     }
 }
