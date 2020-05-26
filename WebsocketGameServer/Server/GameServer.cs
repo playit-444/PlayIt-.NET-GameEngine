@@ -242,6 +242,12 @@ namespace WebsocketGameServer.Server
                                         room.PlayerCanJoinRoom(playerData))
                                         await gameController.RoomManager.AddPlayer(playerData, room.RoomID)
                                             .ConfigureAwait(false);
+                                    //TODO PETER
+                                    var encoded = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(room));
+                                    var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
+                                    await socket.SendAsync(buffers, WebSocketMessageType.Text, true,
+                                            CancellationToken.None)
+                                        .ConfigureAwait(false);
                                     break;
                                 case "LEAVE":
                                     await gameController.RoomManager.RemovePlayer(new Player(playerId), room.RoomID)
@@ -356,10 +362,6 @@ namespace WebsocketGameServer.Server
                 //close stream
                 s.Close();
             }
-
-            var response = (HttpWebResponse) request.GetResponse();
-            var streamResponse = new StreamReader(response.GetResponseStream());
-            Console.WriteLine();
         }
 
         /// <summary>

@@ -29,6 +29,7 @@ namespace WebsocketGameServer.Managers.Room
         public RoomManager()
         {
             Rooms = new Dictionary<string, IRoom>();
+            PlayerRooms = new Dictionary<IPlayer, ICollection<IRoom>>();
         }
 
         /// <summary>

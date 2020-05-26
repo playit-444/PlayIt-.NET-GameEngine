@@ -21,6 +21,7 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
             GameType = gameType;
             MinPlayersNeededToStart = minPlayersNeededToStart;
             MaxPlayersNeededToStart = maxPlayersNeededToStart;
+            Players = new HashSet<IPlayer>();
 
 
             if (initialPlayers == null)
