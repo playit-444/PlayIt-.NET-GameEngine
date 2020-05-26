@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -25,7 +26,13 @@ namespace WebsocketGameServer.Server
 {
     public class GameServer
     {
-        private readonly Uri apiUrl = new Uri("https://api.444.dk/api/game");
+        /*private readonly Uri apiGameUrl = new Uri("https://localhost:5002/api/game");
+        private readonly Uri apiGameTypeUrl = new Uri("https://localhost:5002/api/gametype/simple");
+        private readonly Uri apiLoginUrl = new Uri("https://localhost:5002/api/Account/signin");*/
+        private readonly Uri apiGameUrl = new Uri("https://api.444.dk/api/game");
+        private readonly Uri apiGameTypeUrl = new Uri("https://api.444.dk/api/gametype/simple");
+        private readonly Uri apiLoginUrl = new Uri("https://api.444.dk/api/Account/signin");
+        private PlayerJwtTokenModel playerJwtTokenModel;
         private IGameController gameController;
 
 
@@ -60,11 +67,43 @@ namespace WebsocketGameServer.Server
             }
         }
 
-        public void Initialize()
+        public async void Initialize()
         {
+            //Login and save JWTToken for later use
+            var request = WebRequest.CreateHttp(apiLoginUrl);
+            request.ContentType = "application/json";
+            request.Timeout = 10000;
+            request.Method = "POST";
+
+            //get bytes of the json representation of the payload object and set the payload size
+            byte[] bytes =
+                Encoding.UTF8.GetBytes(
+                    JsonConvert.SerializeObject(new PlayerSignIn("api.444", "tc5mAM!NIRDp%dr5", "127.0.0.1")));
+            request.ContentLength = bytes.Length;
+
+            //write&flush content to the uri endpoint
+            using (Stream s = await request.GetRequestStreamAsync().ConfigureAwait(false))
+            {
+                await s.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
+                await s.FlushAsync().ConfigureAwait(false);
+
+                //close stream
+                s.Close();
+            }
+
+            //Wait for response for the post request
+            var response = (HttpWebResponse) request.GetResponse();
+            var streamResponse = new StreamReader(response.GetResponseStream());
+            //Get token from api call
+            playerJwtTokenModel =
+                JsonConvert.DeserializeObject<PlayerJwtTokenModel>(await streamResponse.ReadToEndAsync());
+
+            streamResponse.Dispose();
+
+
             //get game types
             //create a new http request
-            var request = WebRequest.CreateHttp(new Uri("https://api.444.dk/api/gametype/simple"));
+            request = WebRequest.CreateHttp(apiGameTypeUrl);
             request.ContentType = "application/json";
             request.Timeout = 10000;
             request.Method = "GET";
@@ -148,13 +187,6 @@ namespace WebsocketGameServer.Server
             //keep receiving data while the socket is open
             while (!res.CloseStatus.HasValue)
             {
-                //TODO TEMP
-                var encoded = Encoding.UTF8.GetBytes("{\"name\":\"John\", \"age\":31, \"city\":\"New York\"}");
-                var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
-                await socket.SendAsync(buffers, WebSocketMessageType.Text, true, CancellationToken.None)
-                    .ConfigureAwait(false);
-
-
                 //accept text only as of now //TODO: swap to binary?
                 if (res.MessageType.Equals(WebSocketMessageType.Text))
                 {
@@ -215,7 +247,8 @@ namespace WebsocketGameServer.Server
             //create lookup player
             IPlayer player = new Player(playerId);
             //get rooms that the player is part of
-            if (gameController.RoomManager.PlayerRooms.TryGetValue(player, out rooms) &&
+            if (gameController.RoomManager.PlayerRooms != null &&
+                gameController.RoomManager.PlayerRooms.TryGetValue(player, out rooms) &&
                 rooms != null)
             {
                 //remove the player from all associated rooms
@@ -243,9 +276,10 @@ namespace WebsocketGameServer.Server
                 throw new ArgumentNullException(nameof(args));
 
             //create a new http request
-            var request = WebRequest.CreateHttp(apiUrl);
+            var request = WebRequest.CreateHttp(apiGameUrl);
             request.ContentType = "application/json";
             request.Timeout = 10000;
+            request.Headers.Add("Authorization", "Bearer " + playerJwtTokenModel.JwtToken);
 
             //temporary payload object
             object payload = null;
@@ -304,6 +338,10 @@ namespace WebsocketGameServer.Server
                 //close stream
                 s.Close();
             }
+
+            var response = (HttpWebResponse) request.GetResponse();
+            var streamResponse = new StreamReader(response.GetResponseStream());
+            Console.WriteLine();
         }
 
         /// <summary>
