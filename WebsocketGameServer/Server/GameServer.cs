@@ -25,7 +25,7 @@ namespace WebsocketGameServer.Server
 {
     public class GameServer
     {
-        private readonly Uri apiUrl = new Uri("https://api.444.dk/game");
+        private readonly Uri apiUrl = new Uri("https://api.444.dk/api/game");
         private IGameController gameController;
 
 
@@ -49,13 +49,13 @@ namespace WebsocketGameServer.Server
                     gameController.RoomManager
                         .AddRoom(
                             gameController.LobbyService
-                            .CreateLobby(
-                                gameController.IdentifierGenerator.CreateID(8),
-                                data.gameTypeId,
-                                Array.Empty<IPlayer>(),
-                                (byte)data.minimumPlayers,
-                                (byte)data.maxPlayers,
-                                $"thunberg deluxe {data.name}"));
+                                .CreateLobby(
+                                    gameController.IdentifierGenerator.CreateID(8),
+                                    data.gameTypeId,
+                                    Array.Empty<IPlayer>(),
+                                    (byte) data.minimumPlayers,
+                                    (byte) data.maxPlayers,
+                                    $"thunberg deluxe {data.name}"));
                 }
             }
         }
@@ -74,7 +74,7 @@ namespace WebsocketGameServer.Server
             IList<GameTypeData> jsonRes = JsonConvert.DeserializeObject<List<GameTypeData>>(reader.ReadToEnd());
             reader.Dispose();
 
-            foreach (GameTypeData gameType in jsonRes.GameTypes)
+            foreach (GameTypeData gameType in jsonRes)
             {
                 AddGameType(gameType);
             }
