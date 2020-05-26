@@ -65,21 +65,20 @@ namespace WebsocketGameServer.Server
         {
             //get game types
             //create a new http request
-            var request = WebRequest.CreateHttp(new Uri("https://api.444.dk/gametype/simple"));
+            var request = WebRequest.CreateHttp(new Uri("https://api.444.dk/api/gametype/simple"));
             request.ContentType = "application/json";
             request.Timeout = 10000;
             request.Method = "GET";
 
             var gametypeRes = await request.GetResponseAsync().ConfigureAwait(false);
             StreamReader reader = new StreamReader(gametypeRes.GetResponseStream());
-            GameTypesData jsonRes = JsonConvert.DeserializeObject<GameTypesData>(await reader.ReadToEndAsync().ConfigureAwait(false));
+            var jsonRes = JsonConvert.DeserializeObject<ICollection<GameTypeData>>(await reader.ReadToEndAsync().ConfigureAwait(false));
             reader.Dispose();
 
-            foreach (GameTypeData gameType in jsonRes.GameTypes)
+            foreach (GameTypeData gameType in jsonRes)
             {
                 AddGameType(gameType);
             }
-
 
             byte[] buf = new byte[4096];
             //check nulls
