@@ -19,6 +19,8 @@ namespace WebsocketGameServer.Controllers
         public ILobbyService LobbyService { get; }
         public IRoomManager RoomManager { get; }
 
+        public IDictionary<int, string> GameTypes { get; private set; }
+
         public GameController(
             IRoomManager roomManager,
             IVerificationService<PlayerVerificationResponseModel> VerificationService,
@@ -29,7 +31,9 @@ namespace WebsocketGameServer.Controllers
             RoomManager = roomManager;
             IdentifierGenerator = identifierGenerator;
             LobbyService = lobbyService;
+
             Players = new HashSet<IPlayer>();
+            GameTypes = new Dictionary<int, string>();
         }
 
         public async Task<PlayerVerificationResponseModel> VerifyAsync(string token)

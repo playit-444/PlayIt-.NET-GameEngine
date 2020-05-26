@@ -17,6 +17,7 @@ using WebsocketGameServer.Data.Game.Room;
 using WebsocketGameServer.Data.Game.Room.Lobbies;
 using WebsocketGameServer.Data.Messages;
 using WebsocketGameServer.Data.Models.Rooms;
+using WebsocketGameServer.Data.Models.Types;
 using WebsocketGameServer.Models.Args;
 using WebsocketGameServer.Models.Player;
 
@@ -33,6 +34,28 @@ namespace WebsocketGameServer.Server
             this.gameController = controller;
         }
 
+        private void AddGameType(GameTypeData data)
+        {
+            if (!gameController.GameTypes.ContainsKey(data.gameTypeId))
+            {
+                gameController.GameTypes.Add(data.gameTypeId, data.name);
+
+                for (int i = 0; i < 2; i++)
+                {
+                    gameController.RoomManager
+                        .AddRoom(
+                            gameController.LobbyService
+                            .CreateLobby(
+                                gameController.IdentifierGenerator.CreateID(8),
+                                data.gameTypeId,
+                                Array.Empty<IPlayer>(),
+                                (byte)data.minimumPlayers,
+                                (byte)data.maxPlayers,
+                                $"thunberg deluxe {data.name}"));
+                }
+            }
+        }
+
         /// <summary>
         /// Handles a new socket connection, and begins the verification process before talking back and forth with the socket
         /// </summary>
@@ -40,6 +63,24 @@ namespace WebsocketGameServer.Server
         /// <param name="socket">The socket attempting to get accepted</param>
         public async Task HandleNewSocketAsync(HttpContext context, WebSocket socket)
         {
+            //get game types
+            //create a new http request
+            var request = WebRequest.CreateHttp(new Uri("https://api.444.dk/gametype/simple"));
+            request.ContentType = "application/json";
+            request.Timeout = 10000;
+            request.Method = "GET";
+
+            var gametypeRes = await request.GetResponseAsync().ConfigureAwait(false);
+            StreamReader reader = new StreamReader(gametypeRes.GetResponseStream());
+            GameTypesData jsonRes = JsonConvert.DeserializeObject<GameTypesData>(await reader.ReadToEndAsync().ConfigureAwait(false));
+            reader.Dispose();
+
+            foreach (GameTypeData gameType in jsonRes.GameTypes)
+            {
+                AddGameType(gameType);
+            }
+
+
             byte[] buf = new byte[4096];
             //check nulls
             if (socket == null)
