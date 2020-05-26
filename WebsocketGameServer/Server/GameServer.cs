@@ -206,7 +206,7 @@ namespace WebsocketGameServer.Server
                 if (res.MessageType.Equals(WebSocketMessageType.Text))
                 {
                     //get the string content and skip if that content turns out to be null
-                    string message = Encoding.UTF8.GetString(buffer).Trim();
+                    string message = Encoding.UTF8.GetString(buffer[0..res.Count]).Trim();
                     if (string.IsNullOrEmpty(message))
                         continue;
 
