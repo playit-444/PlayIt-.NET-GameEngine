@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Ocsp;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -19,6 +18,7 @@ using WebsocketGameServer.Data.Game.Room.Lobbies;
 using WebsocketGameServer.Data.Messages;
 using WebsocketGameServer.Data.Models.Rooms;
 using WebsocketGameServer.Data.Models.Types;
+using WebsocketGameServer.Data.Players;
 using WebsocketGameServer.Models.Args;
 using WebsocketGameServer.Models.Player;
 
@@ -33,6 +33,7 @@ namespace WebsocketGameServer.Server
         private readonly Uri apiGameUrl = new Uri("https://api.444.dk/api/game");
         private readonly Uri apiGameTypeUrl = new Uri("https://api.444.dk/api/gametype/simple");
         private readonly Uri apiLoginUrl = new Uri("https://api.444.dk/api/Account/signin");
+        private readonly Uri apiCloseServerUrl = new Uri("https://api.444.dk/api/Game/ServerClose");
         private PlayerJwtTokenModel playerJwtTokenModel;
         private IGameController gameController;
 
@@ -44,6 +45,15 @@ namespace WebsocketGameServer.Server
 
             gameController = controller;
             gameController.RoomManager.RoomStateChanged += HandleNewRoomStateAsync;
+        }
+
+        ~GameServer()
+        {
+            Console.WriteLine("close");
+            WebRequest request = WebRequest.Create(apiCloseServerUrl);
+            request.Method = "DELETE";
+            request.Headers.Add("Authorization", "Bearer " + playerJwtTokenModel.JwtToken);
+            request.GetResponse();
         }
 
         private void AddGameType(GameTypeData data)
@@ -177,7 +187,7 @@ namespace WebsocketGameServer.Server
                 if (playerData == null || playerData.PlayerId.Equals(0))
                 {
                     // Verification failed
-                    var encoded = Encoding.UTF8.GetBytes("{\"Authentication\":\"Success\"}");
+                    var encoded = Encoding.UTF8.GetBytes("{\"Authentication\":\"Error\"}");
                     var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
                     await socket.SendAsync(buffers, WebSocketMessageType.Text, true, CancellationToken.None)
                         .ConfigureAwait(false);
@@ -243,12 +253,24 @@ namespace WebsocketGameServer.Server
                                         room.PlayerCanJoinRoom(playerData))
                                         await gameController.RoomManager.AddPlayer(playerData, room.RoomID)
                                             .ConfigureAwait(false);
-                                    //TODO PETER
-                                    var encoded = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(room));
+                                    //TODO need to be rewrite
+                                    var lobby = (ILobby) room;
+                                    var list = new Collection<IPlayerData>();
+                                    foreach (var players in room.Players)
+                                    {
+                                        list.Add(new PlayerData(players.PlayerId, players.Name, false));
+                                    }
+
+                                    var encoded =
+                                        Encoding.UTF8.GetBytes(
+                                            JsonConvert.SerializeObject(new LobbyData(list.ToArray(), lobby.GameType,
+                                                lobby.RoomID, lobby.Name, lobby.MaxPlayersNeededToStart,
+                                                list.Count, false)));
                                     var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
                                     await socket.SendAsync(buffers, WebSocketMessageType.Text, true,
                                             CancellationToken.None)
                                         .ConfigureAwait(false);
+                                    //TODO DONE
                                     break;
                                 case "LEAVE":
                                     await gameController.RoomManager.RemovePlayer(new Player(playerId), room.RoomID)
@@ -363,6 +385,7 @@ namespace WebsocketGameServer.Server
                 //close stream
                 s.Close();
             }
+
             //TODO Need to get response else api do not receive data
             request.GetResponse();
         }
