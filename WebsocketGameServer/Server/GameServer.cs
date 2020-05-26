@@ -60,7 +60,7 @@ namespace WebsocketGameServer.Server
         {
             //get game types
             //create a new http request
-            var request = WebRequest.CreateHttp(new Uri("https://api.444.dk/gametype/simple"));
+            var request = WebRequest.CreateHttp(new Uri("https://api.444.dk/api/gametype/simple"));
             request.ContentType = "application/json";
             request.Timeout = 10000;
             request.Method = "GET";
@@ -70,7 +70,7 @@ namespace WebsocketGameServer.Server
             IList<GameTypeData> jsonRes = JsonConvert.DeserializeObject<List<GameTypeData>>(reader.ReadToEnd());
             reader.Dispose();
 
-            foreach (GameTypeData gameType in jsonRes)
+            foreach (GameTypeData gameType in jsonRes.GameTypes)
             {
                 AddGameType(gameType);
             }

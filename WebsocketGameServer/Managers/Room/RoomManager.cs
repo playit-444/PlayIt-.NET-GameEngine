@@ -26,6 +26,11 @@ namespace WebsocketGameServer.Managers.Room
 
         public event IRoomManager.RoomHandler RoomStateChanged;
 
+        public RoomManager()
+        {
+            Rooms = new Dictionary<string, IRoom>();
+        }
+
         /// <summary>
         /// Add a player to a specific lobby
         /// Also getting added to playerrooms for fast lookup
@@ -38,7 +43,7 @@ namespace WebsocketGameServer.Managers.Room
             //check nulls
             if (player == null || player.PlayerId.Equals(0) || string.IsNullOrEmpty(player.Name))
                 throw new ArgumentNullException(nameof(player));
-            if(string.IsNullOrEmpty(roomId))
+            if (string.IsNullOrEmpty(roomId))
                 throw new ArgumentNullException(nameof(roomId));
 
             //make sure the room exists and that the player can join
@@ -51,7 +56,7 @@ namespace WebsocketGameServer.Managers.Room
                 if (PlayerRooms.ContainsKey(player))
                     PlayerRooms[player].Add(Rooms[roomId]);
                 else
-                    PlayerRooms.Add(player, new List<IRoom>() { Rooms[roomId] });
+                    PlayerRooms.Add(player, new List<IRoom>() {Rooms[roomId]});
 
                 //invoke event to notify listerners of the new state of the room
                 RoomStateChanged?.Invoke(new RoomArgs(Rooms[roomId], RoomActionType.UPDATE));

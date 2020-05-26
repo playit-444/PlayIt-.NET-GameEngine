@@ -7,6 +7,6 @@ namespace WebsocketGameServer.Data.Models.Types
 {
     public class GameTypesData
     {
-        public IEnumerable<GameTypeData> GameTypes { get; set; }
+        public List<GameTypeData> GameTypes { get; set; }
     }
 }
