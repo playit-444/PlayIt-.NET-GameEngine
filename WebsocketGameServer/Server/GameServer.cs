@@ -29,6 +29,7 @@ namespace WebsocketGameServer.Server
         /*private readonly Uri apiGameUrl = new Uri("https://localhost:5002/api/game");
         private readonly Uri apiGameTypeUrl = new Uri("https://localhost:5002/api/gametype/simple");
         private readonly Uri apiLoginUrl = new Uri("https://localhost:5002/api/Account/signin");*/
+
         private readonly Uri apiGameUrl = new Uri("https://api.444.dk/api/game");
         private readonly Uri apiGameTypeUrl = new Uri("https://api.444.dk/api/gametype/simple");
         private readonly Uri apiLoginUrl = new Uri("https://api.444.dk/api/Account/signin");
@@ -242,6 +243,12 @@ namespace WebsocketGameServer.Server
                                         room.PlayerCanJoinRoom(playerData))
                                         await gameController.RoomManager.AddPlayer(playerData, room.RoomID)
                                             .ConfigureAwait(false);
+                                    //TODO PETER
+                                    var encoded = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(room));
+                                    var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
+                                    await socket.SendAsync(buffers, WebSocketMessageType.Text, true,
+                                            CancellationToken.None)
+                                        .ConfigureAwait(false);
                                     break;
                                 case "LEAVE":
                                     await gameController.RoomManager.RemovePlayer(new Player(playerId), room.RoomID)
@@ -356,10 +363,8 @@ namespace WebsocketGameServer.Server
                 //close stream
                 s.Close();
             }
-
-            var response = (HttpWebResponse) request.GetResponse();
-            var streamResponse = new StreamReader(response.GetResponseStream());
-            Console.WriteLine();
+            //TODO Need to get response else api do not receive data
+            request.GetResponse();
         }
 
         /// <summary>
