@@ -29,6 +29,7 @@ namespace WebsocketGameServer.Server
         /*private readonly Uri apiGameUrl = new Uri("https://localhost:5002/api/game");
         private readonly Uri apiGameTypeUrl = new Uri("https://localhost:5002/api/gametype/simple");
         private readonly Uri apiLoginUrl = new Uri("https://localhost:5002/api/Account/signin");*/
+
         private readonly Uri apiGameUrl = new Uri("https://api.444.dk/api/game");
         private readonly Uri apiGameTypeUrl = new Uri("https://api.444.dk/api/gametype/simple");
         private readonly Uri apiLoginUrl = new Uri("https://api.444.dk/api/Account/signin");
@@ -362,6 +363,8 @@ namespace WebsocketGameServer.Server
                 //close stream
                 s.Close();
             }
+            //TODO Need to get response else api do not receive data
+            request.GetResponse();
         }
 
         /// <summary>
