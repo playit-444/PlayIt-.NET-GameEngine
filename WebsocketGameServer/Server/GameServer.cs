@@ -25,7 +25,7 @@ namespace WebsocketGameServer.Server
 {
     public class GameServer
     {
-        private readonly Uri apiUrl = new Uri("https://api.444.dk/game");
+        private readonly Uri apiUrl = new Uri("https://api.444.dk/api/game");
         private IGameController gameController;
 
 
