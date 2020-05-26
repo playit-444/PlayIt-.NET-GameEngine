@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Data.Messages;
+using WebsocketGameServer.Models.Args;
 
 namespace WebsocketGameServer.Data.Game.Room
 {
@@ -23,6 +25,8 @@ namespace WebsocketGameServer.Data.Game.Room
         /// </summary>
         /// <param name="player">The player that is attempting to join the room</param>
         /// <returns>Whether the player is capable of joining the room</returns>
-        public Task<bool> PlayerCanJoinRoom(IPlayer player);
+        public bool PlayerCanJoinRoom(IPlayer player);
+
+        public void ReceiveMessage(IRoomMessage message);
     }
 }

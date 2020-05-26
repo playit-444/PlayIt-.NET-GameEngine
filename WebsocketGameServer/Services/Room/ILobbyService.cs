@@ -9,13 +9,14 @@ namespace WebsocketGameServer.Services.Room
         /// <summary>
         /// Creates a standard publicly joinable lobby
         /// </summary>
-        /// <param name="gameType">The time of game that will be played in the room</param>
+        /// <param name="id">The unique id for the game</param>
+        /// <param name="gameType">The type of game that will be played in the room</param>
         /// <param name="players">The players the room will start off with</param>
         /// <param name="minPlayers">The minimum players needed to start the game</param>
         /// <param name="maxPlayers">The maximum amount of players allowed in the game</param>
         /// <param name="name">The name of the lobby</param>
         /// <returns>A new instance of ILobby</returns>
-        ILobby CreateLobby(in int gameType, IPlayer[] players, in byte minPlayers, in byte maxPlayers, in string name = null);
+        ILobby CreateLobby( in string id, in int gameType, IPlayer[] players, in byte minPlayers, in byte maxPlayers, in string name = null);
 
         /// <summary>
         /// Creates a private lobby room

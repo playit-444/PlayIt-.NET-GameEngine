@@ -1,5 +1,5 @@
-
 *.lock
 *.ide
 *.ide-wal
 *.ide-shm
+/WebsocketGameServer/bin

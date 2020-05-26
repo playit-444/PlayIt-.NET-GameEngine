@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Net.WebSockets;
+﻿using System.Net.WebSockets;
 
 namespace WebsocketGameServer.Data.Game.Player
 {
@@ -10,7 +6,7 @@ namespace WebsocketGameServer.Data.Game.Player
     {
         string Key { get; set; }
         WebSocket Socket { get; set; }
-        long PlayerID { get; set; }
+        long PlayerId { get; set; }
         string Name { get; set; }
     }
 }
