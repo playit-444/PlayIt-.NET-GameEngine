@@ -54,8 +54,7 @@ namespace WebsocketGameServer
                 ReceiveBufferSize = 4096
             };
 
-            //subscribe to socket event
-            //SocketJoin += server.HandleNewSocketAsync;
+            server.Initialize();
 
             app.UseWebSockets(opts);
 

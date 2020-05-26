@@ -56,12 +56,7 @@ namespace WebsocketGameServer.Server
             }
         }
 
-        /// <summary>
-        /// Handles a new socket connection, and begins the verification process before talking back and forth with the socket
-        /// </summary>
-        /// <param name="context">The http context that the socket connected through</param>
-        /// <param name="socket">The socket attempting to get accepted</param>
-        public async Task HandleNewSocketAsync(HttpContext context, WebSocket socket)
+        public void Initialize()
         {
             //get game types
             //create a new http request
@@ -72,15 +67,22 @@ namespace WebsocketGameServer.Server
 
             var gametypeRes = await request.GetResponseAsync().ConfigureAwait(false);
             StreamReader reader = new StreamReader(gametypeRes.GetResponseStream());
-            GameTypesData jsonRes = JsonConvert.DeserializeObject<GameTypesData>(await reader.ReadToEndAsync().ConfigureAwait(false));
+            IList<GameTypeData> jsonRes = JsonConvert.DeserializeObject<List<GameTypeData>>(await reader.ReadToEndAsync().ConfigureAwait(false));
             reader.Dispose();
 
-            foreach (GameTypeData gameType in jsonRes.GameTypes)
+            foreach (GameTypeData gameType in jsonRes)
             {
                 AddGameType(gameType);
             }
+        }
 
-
+        /// <summary>
+        /// Handles a new socket connection, and begins the verification process before talking back and forth with the socket
+        /// </summary>
+        /// <param name="context">The http context that the socket connected through</param>
+        /// <param name="socket">The socket attempting to get accepted</param>
+        public async Task HandleNewSocketAsync(HttpContext context, WebSocket socket)
+        {
             byte[] buf = new byte[4096];
             //check nulls
             if (socket == null)
