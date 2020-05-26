@@ -83,28 +83,32 @@ namespace WebsocketGameServer.Managers.Room
             if (string.IsNullOrEmpty(roomId))
                 throw new ArgumentNullException(nameof(roomId));
 
-            //make sure the player is in the room
-            if (Rooms[roomId].Players.Contains(player))
+            //TODO PETER added Rooms.ContainsKey(roomId)
+            if (Rooms.ContainsKey(roomId))
             {
-                //remove both bindings from the player to the room
-                PlayerRooms[player].Remove(Rooms[roomId]);
-                Rooms[roomId].Players.Remove(player);
-
-                //check whether the room is now empty and delete if that's the case
-                if (Rooms[roomId].Players.Count < 1)
+                //make sure the player is in the room
+                if (Rooms[roomId].Players.Contains(player))
                 {
-                    //invoke event to notify listeners of the deleted room
-                    RoomStateChanged?.Invoke(new RoomArgs(Rooms[roomId], RoomActionType.DELETE));
+                    //remove both bindings from the player to the room
+                    PlayerRooms[player].Remove(Rooms[roomId]);
+                    Rooms[roomId].Players.Remove(player);
 
-                    //remove the room
-                    RemoveRoom(roomId);
+                    //check whether the room is now empty and delete if that's the case
+                    if (Rooms[roomId].Players.Count < 1)
+                    {
+                        //invoke event to notify listeners of the deleted room
+                        RoomStateChanged?.Invoke(new RoomArgs(Rooms[roomId], RoomActionType.DELETE));
+
+                        //remove the room
+                        RemoveRoom(roomId);
+                        return true;
+                    }
+
+                    //invoke event to notify listeners of the updated room
+                    RoomStateChanged?.Invoke(new RoomArgs(Rooms[roomId], RoomActionType.UPDATE));
+
                     return true;
                 }
-
-                //invoke event to notify listeners of the updated room
-                RoomStateChanged?.Invoke(new RoomArgs(Rooms[roomId], RoomActionType.UPDATE));
-
-                return true;
             }
 
             return false;
