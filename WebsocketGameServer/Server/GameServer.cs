@@ -65,9 +65,9 @@ namespace WebsocketGameServer.Server
             request.Timeout = 10000;
             request.Method = "GET";
 
-            var gametypeRes = await request.GetResponseAsync().ConfigureAwait(false);
+            var gametypeRes = request.GetResponse();
             StreamReader reader = new StreamReader(gametypeRes.GetResponseStream());
-            IList<GameTypeData> jsonRes = JsonConvert.DeserializeObject<List<GameTypeData>>(await reader.ReadToEndAsync().ConfigureAwait(false));
+            IList<GameTypeData> jsonRes = JsonConvert.DeserializeObject<List<GameTypeData>>(reader.ReadToEnd());
             reader.Dispose();
 
             foreach (GameTypeData gameType in jsonRes)
