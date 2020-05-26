@@ -210,18 +210,15 @@ namespace WebsocketGameServer.Server
                     if (string.IsNullOrEmpty(message))
                         continue;
 
+                    //TODO under dosent work so this is a quick fix. think it something about empty chars at end
+                    message = message.Split("\"")[1];
+
                     //split the message into individual arguements
                     string[] args = message.Split('|');
+
                     //make sure there's at least 1 argument in the message, otherwise skip
                     if (args.Length < 1 || string.IsNullOrEmpty(args[0]))
                         continue;
-
-                    //Some lines start with " remove it
-                    if (args[0][0] == '\"')
-                    {
-                        //args
-                    }
-
 
                     //check if the client want to create a new room
                     if (args[0].ToUpperInvariant().Equals("CREATE", StringComparison.InvariantCultureIgnoreCase))
