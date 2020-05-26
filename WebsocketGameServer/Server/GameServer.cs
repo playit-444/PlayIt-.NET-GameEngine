@@ -31,7 +31,11 @@ namespace WebsocketGameServer.Server
 
         public GameServer(IGameController controller)
         {
-            this.gameController = controller;
+            if (controller == null)
+                throw new ArgumentNullException(nameof(controller));
+
+            gameController = controller;
+            gameController.RoomManager.RoomStateChanged += HandleNewRoomStateAsync;
         }
 
         private void AddGameType(GameTypeData data)
