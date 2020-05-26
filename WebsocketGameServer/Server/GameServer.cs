@@ -174,7 +174,22 @@ namespace WebsocketGameServer.Server
 
                 //check nulls
                 if (playerData == null || playerData.PlayerId.Equals(0))
+                {
+                    // Verification failed
+                    var encoded = Encoding.UTF8.GetBytes("{\"Authentication\":\"Success\"}");
+                    var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
+                    await socket.SendAsync(buffers, WebSocketMessageType.Text, true, CancellationToken.None)
+                        .ConfigureAwait(false);
                     return;
+                }
+                else
+                {
+                    // Verification success
+                    var encoded = Encoding.UTF8.GetBytes("{\"Authentication\":\"Success\"}");
+                    var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
+                    await socket.SendAsync(buffers, WebSocketMessageType.Text, true, CancellationToken.None)
+                        .ConfigureAwait(false);
+                }
 
                 playerId = playerData.PlayerId;
 
@@ -201,6 +216,13 @@ namespace WebsocketGameServer.Server
                     if (args.Length < 1 || string.IsNullOrEmpty(args[0]))
                         continue;
 
+                    //Some lines start with " remove it
+                    if (args[0][0] == '\"')
+                    {
+                        //args
+                    }
+
+
                     //check if the client want to create a new room
                     if (args[0].ToUpperInvariant().Equals("CREATE", StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -209,8 +231,7 @@ namespace WebsocketGameServer.Server
 
                     //if not, treat all requests as a room request
                     IRoom room;
-                    if (gameController.RoomManager.Rooms != null &&
-                        gameController.RoomManager.Rooms.TryGetValue(args[0], out room))
+                    if (gameController.RoomManager.Rooms.TryGetValue(args[0], out room))
                     {
                         //check nulls
                         if (!string.IsNullOrEmpty(args[1]))
