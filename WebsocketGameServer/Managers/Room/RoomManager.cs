@@ -1,15 +1,24 @@
-﻿using System;
+﻿using WebsocketGameServer.Services.Generators;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using WebsocketGameServer.Data.Constants;
 using WebsocketGameServer.Data.Game.Players;
 using WebsocketGameServer.Data.Game.Room;
+using WebsocketGameServer.Data.Game.Room.Lobbies;
 using WebsocketGameServer.Models.Args;
+using WebsocketGameServer.Services.Generators;
+using WebsocketGameServer.Services.Room;
 
 namespace WebsocketGameServer.Managers.Room
 {
     public class RoomManager : IRoomManager
     {
+        //the gametype and the amount of lobbies with that type
+        private IDictionary<int, int> openLobbies;
+        //internal lobby service for creating empty mandatory lobbies
+        private IIdentifierGenerator IdGenerator;
+
         /// <summary>
         /// List of rooms with id for fast lookup
         /// </summary>
@@ -26,6 +35,9 @@ namespace WebsocketGameServer.Managers.Room
         {
             Rooms = new Dictionary<string, IRoom>();
             PlayerRooms = new Dictionary<IPlayer, ICollection<IRoom>>();
+
+            openLobbies = new Dictionary<int, int>();
+            IdGenerator = new HexIdGenerator();
         }
 
         /// <summary>
@@ -53,7 +65,7 @@ namespace WebsocketGameServer.Managers.Room
                 if (PlayerRooms.ContainsKey(player))
                     PlayerRooms[player].Add(Rooms[roomId]);
                 else
-                    PlayerRooms.Add(player, new List<IRoom>() {Rooms[roomId]});
+                    PlayerRooms.Add(player, new List<IRoom>() { Rooms[roomId] });
 
                 //invoke event to notify listerners of the new state of the room
                 RoomStateChanged?.Invoke(new RoomArgs(Rooms[roomId], RoomActionType.UPDATE));
@@ -129,6 +141,14 @@ namespace WebsocketGameServer.Managers.Room
 
             //notify listeners
             RoomStateChanged?.Invoke(new RoomArgs(room, RoomActionType.CREATE));
+
+            if (room is ILobby lobby)
+            {
+                if (openLobbies.ContainsKey(lobby.GameType))
+                    openLobbies[lobby.GameType]++;
+                else
+                    openLobbies.Add(lobby.GameType, 1);
+            }
         }
 
         /// <summary>
@@ -147,6 +167,30 @@ namespace WebsocketGameServer.Managers.Room
 
             //notify listeners of the deleted room
             RoomStateChanged?.Invoke(new RoomArgs(Rooms[roomId], RoomActionType.DELETE));
+
+            if (Rooms[roomId] is ILobby lobby)
+            {
+                if (openLobbies.ContainsKey(lobby.GameType))
+                {
+                    openLobbies[lobby.GameType]--;
+
+                    if (openLobbies[lobby.GameType] < 2)
+                    {
+                        Lobby newLobby =
+                            new Lobby(
+                                IdGenerator.CreateID(8),
+                                "automaticically created room",
+                                lobby.GameType,
+                                Array.Empty<IPlayer>(),
+                                lobby.MinPlayersNeededToStart,
+                                lobby.MaxPlayersNeededToStart);
+
+                        Rooms.Add(newLobby.RoomID, newLobby);
+
+                        RoomStateChanged?.Invoke(new RoomArgs(newLobby, RoomActionType.CREATE));
+                    }
+                }
+            }
 
             //remove room
             Rooms.Remove(roomId);

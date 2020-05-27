@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GameServer.Services.Generators;
-using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Services.Generators;
+using WebsocketGameServer.Data.Game.Players;
 using WebsocketGameServer.Managers.Room;
 using WebsocketGameServer.Models.Player;
 using WebsocketGameServer.Services.Room;

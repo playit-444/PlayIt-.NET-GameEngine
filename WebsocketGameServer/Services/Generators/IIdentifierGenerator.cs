@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GameServer.Services.Generators
+namespace WebsocketGameServer.Services.Generators
 {
     /// <summary>
     /// Interface capable of creating string based ids

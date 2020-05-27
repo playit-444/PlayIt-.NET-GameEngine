@@ -1,5 +1,5 @@
 ﻿using System;
-using GameServer.Services.Generators;
+using WebsocketGameServer.Services.Generators;
 using Org.BouncyCastle.Security;
 
 namespace WebsocketGameServer.Services.Generators
