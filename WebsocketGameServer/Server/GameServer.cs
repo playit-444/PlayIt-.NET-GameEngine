@@ -26,7 +26,7 @@ namespace WebsocketGameServer.Server
 {
     public class GameServer
     {
-        
+
         private readonly string baseUrl = "https://api.444.dk/api/";
 
         //private readonly string baseUrl = "https://localhost:5002/api/";
@@ -65,8 +65,8 @@ namespace WebsocketGameServer.Server
                                     gameController.IdentifierGenerator.CreateID(8),
                                     data.gameTypeId,
                                     Array.Empty<IPlayer>(),
-                                    (byte) data.minimumPlayers,
-                                    (byte) data.maxPlayers,
+                                    (byte)data.minimumPlayers,
+                                    (byte)data.maxPlayers,
                                     $"thunberg deluxe {data.name}"));
                 }
             }
@@ -97,7 +97,7 @@ namespace WebsocketGameServer.Server
             }
 
             //Wait for response for the post request
-            var response = (HttpWebResponse) request.GetResponse();
+            var response = (HttpWebResponse)request.GetResponse();
             var streamResponse = new StreamReader(response.GetResponseStream());
             //Get token from api call
             playerJwtTokenModel =
@@ -246,19 +246,14 @@ namespace WebsocketGameServer.Server
                                     await SendMessageAsync(room).ConfigureAwait(false);
                                     break;
                                 case "READY":
-                                    var lobbyReady = (ILobby) room;
-                                    var readyBool = gameController.Players.TryGetValue(new Player(playerId),
-                                        out IPlayer playerDataReady);
-                                    if (readyBool)
+                                    var l = (ILobby)room;
+                                    if (l.Players.TryGetValue(new Player(playerId), out IPlayer p))
                                     {
-                                        if (lobbyReady.PlayerReadyState.ContainsKey(playerDataReady))
+                                        if (l.PlayerReadyState.ContainsKey(p))
                                         {
-                                            lobbyReady.PlayerReadyState[playerDataReady] = true;
+                                            l.PlayerReadyState[p] = !l.PlayerReadyState[p];
                                         }
-                                        else
-                                        {
-                                            lobbyReady.PlayerReadyState.Add(playerDataReady, true);
-                                        }
+
                                         await SendMessageAsync(room).ConfigureAwait(false);
                                     }
                                     break;
@@ -301,7 +296,7 @@ namespace WebsocketGameServer.Server
 
         private async Task SendMessageAsync(IRoom room)
         {
-            var lobby = (ILobby) room;
+            var lobby = (ILobby)room;
             var playerDatas = new IPlayerData[room.Players.Count];
             for (int i = 0; i < room.Players.Count; i++)
             {
@@ -322,7 +317,8 @@ namespace WebsocketGameServer.Server
                     Encoding.UTF8.GetBytes(
                         JsonConvert.SerializeObject(new LobbyData(playerDatas,
                             lobby.GameType,
-                            lobby.RoomID, lobby.Name, lobby.MaxPlayersNeededToStart,
+                            lobby.RoomID, lobby.Name, 
+                            lobby.MaxPlayersNeededToStart,
                             playerDatas.Length, false)));
                 var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
                 await roomPlayer.Socket.SendAsync(buffers, WebSocketMessageType.Text, true,
@@ -370,7 +366,7 @@ namespace WebsocketGameServer.Server
                         {
                             if (e.Response != null)
                             {
-                                using (var errorResponse = (HttpWebResponse) e.Response)
+                                using (var errorResponse = (HttpWebResponse)e.Response)
                                 {
                                     using (var reader = new StreamReader(errorResponse.GetResponseStream()))
                                     {
@@ -435,7 +431,7 @@ namespace WebsocketGameServer.Server
             {
                 if (e.Response != null)
                 {
-                    using (var errorResponse = (HttpWebResponse) e.Response)
+                    using (var errorResponse = (HttpWebResponse)e.Response)
                     {
                         using (var reader = new StreamReader(errorResponse.GetResponseStream()))
                         {
