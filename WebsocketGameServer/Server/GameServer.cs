@@ -285,7 +285,7 @@ namespace WebsocketGameServer.Server
                 rooms != null)
             {
                 //remove the player from all associated rooms
-                foreach (var room in rooms)
+                foreach (var room in rooms.ToList())
                 {
                     await gameController.RoomManager.RemovePlayer(player, room.RoomID).ConfigureAwait(false);
                     await SendMessageAsync(room).ConfigureAwait(false);
