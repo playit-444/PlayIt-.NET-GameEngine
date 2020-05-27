@@ -237,45 +237,12 @@ namespace WebsocketGameServer.Server
                                         playerData.Socket = socket;
                                     await gameController.RoomManager.AddPlayer(playerData, room.RoomID)
                                         .ConfigureAwait(false);
-                                    //TODO need to be rewrite
-                                    var lobby = (ILobby) room;
-                                    var playerDatas = new IPlayerData[room.Players.Count];
-
-                                    for (int i = 0; i < room.Players.Count; i++)
-                                    {
-                                        var playerInformation = room.Players.ToArray()[i];
-                                        bool readyState = false;
-                                        if (lobby.PlayerReadyState.ContainsKey(playerInformation))
-                                        {
-                                            readyState = lobby.PlayerReadyState[playerInformation];
-                                        }
-
-                                        playerDatas[i] = new PlayerData(playerInformation.PlayerId,
-                                            playerInformation.Name, readyState);
-                                    }
-
-                                    foreach (var roomPlayer in room.Players)
-                                    {
-                                        if (roomPlayer.Socket.State == WebSocketState.Open)
-                                        {
-                                            var encoded =
-                                                Encoding.UTF8.GetBytes(
-                                                    JsonConvert.SerializeObject(new LobbyData(playerDatas,
-                                                        lobby.GameType,
-                                                        lobby.RoomID, lobby.Name, lobby.MaxPlayersNeededToStart,
-                                                        playerDatas.Length, false)));
-                                            var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
-                                            await roomPlayer.Socket.SendAsync(buffers, WebSocketMessageType.Text, true,
-                                                    CancellationToken.None)
-                                                .ConfigureAwait(false);
-                                        }
-                                    }
-
-                                    //TODO DONE
+                                    await SendMessageAsync(room).ConfigureAwait(false);
                                     break;
                                 case "LEAVE":
                                     await gameController.RoomManager.RemovePlayer(new Player(playerId), room.RoomID)
                                         .ConfigureAwait(false);
+                                    await SendMessageAsync(room).ConfigureAwait(false);
                                     break;
                                 case "READY":
                                     var lobbyReady = (ILobby) room;
@@ -291,11 +258,7 @@ namespace WebsocketGameServer.Server
                                         {
                                             lobbyReady.PlayerReadyState.Add(playerDataReady, true);
                                         }
-                                        var encoded = Encoding.UTF8.GetBytes("{\"ReadyState\":\"True\"}");
-                                        var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
-                                        await socket.SendAsync(buffers, WebSocketMessageType.Text, true,
-                                                CancellationToken.None)
-                                            .ConfigureAwait(false);
+                                        await SendMessageAsync(room).ConfigureAwait(false);
                                     }
                                     break;
                                 default:
@@ -321,9 +284,10 @@ namespace WebsocketGameServer.Server
                 rooms != null)
             {
                 //remove the player from all associated rooms
-                foreach (string roomId in rooms.Select(x => x.RoomID).ToList())
+                foreach (var room in rooms)
                 {
-                    await gameController.RoomManager.RemovePlayer(player, roomId).ConfigureAwait(false);
+                    await gameController.RoomManager.RemovePlayer(player, room.RoomID).ConfigureAwait(false);
+                    await SendMessageAsync(room).ConfigureAwait(false);
                 }
             }
 
@@ -332,6 +296,38 @@ namespace WebsocketGameServer.Server
                 .ConfigureAwait(false);
             //dispose the socket
             socket.Dispose();
+        }
+
+        private async Task SendMessageAsync(IRoom room)
+        {
+            var lobby = (ILobby) room;
+            var playerDatas = new IPlayerData[room.Players.Count];
+            for (int i = 0; i < room.Players.Count; i++)
+            {
+                var playerInformation = room.Players.ToArray()[i];
+                bool readyState = false;
+                if (lobby.PlayerReadyState.ContainsKey(playerInformation))
+                {
+                    readyState = lobby.PlayerReadyState[playerInformation];
+                }
+
+                playerDatas[i] = new PlayerData(playerInformation.PlayerId,
+                    playerInformation.Name, readyState);
+            }
+            //Loop all players and tell a player left
+            foreach (var roomPlayer in room.Players)
+            {
+                var encoded =
+                    Encoding.UTF8.GetBytes(
+                        JsonConvert.SerializeObject(new LobbyData(playerDatas,
+                            lobby.GameType,
+                            lobby.RoomID, lobby.Name, lobby.MaxPlayersNeededToStart,
+                            playerDatas.Length, false)));
+                var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
+                await roomPlayer.Socket.SendAsync(buffers, WebSocketMessageType.Text, true,
+                        CancellationToken.None)
+                    .ConfigureAwait(false);
+            }
         }
 
         /// <summary>
