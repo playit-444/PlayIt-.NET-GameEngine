@@ -12,15 +12,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebsocketGameServer.Controllers;
 using WebsocketGameServer.Data.Constants;
-using WebsocketGameServer.Data.Game.Player;
 using WebsocketGameServer.Data.Game.Room;
 using WebsocketGameServer.Data.Game.Room.Lobbies;
 using WebsocketGameServer.Data.Messages;
 using WebsocketGameServer.Data.Models.Rooms;
 using WebsocketGameServer.Data.Models.Types;
-using WebsocketGameServer.Data.Players;
+using WebsocketGameServer.Data.Models.Players;
 using WebsocketGameServer.Models.Args;
 using WebsocketGameServer.Models.Player;
+using WebsocketGameServer.Data.Game.Players;
 
 namespace WebsocketGameServer.Server
 {

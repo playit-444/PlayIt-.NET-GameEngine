@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace WebsocketGameServer.Data.Players
+namespace WebsocketGameServer.Data.Models.Players
 {
     public interface IPlayerData
     {

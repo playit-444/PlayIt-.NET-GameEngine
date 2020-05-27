@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using GameServer.Services.Generators;
 using WebsocketGameServer.Services.Security;
-using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Data.Game.Players;
 using WebsocketGameServer.Models.Player;
 using WebsocketGameServer.Managers.Room;
 using WebsocketGameServer.Services.Room;
