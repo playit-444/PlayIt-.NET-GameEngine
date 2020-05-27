@@ -1,6 +1,6 @@
 ﻿using System.Net.WebSockets;
 
-namespace WebsocketGameServer.Data.Game.Player
+namespace WebsocketGameServer.Data.Game.Players
 {
     public interface IPlayer
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Data.Game.Players;
 
 namespace WebsocketGameServer.Data.Game.Room
 {

@@ -1,4 +1,4 @@
-﻿using WebsocketGameServer.Data.Game.Player;
+﻿using WebsocketGameServer.Data.Game.Players;
 using WebsocketGameServer.Data.Game.Room.Lobbies;
 
 namespace WebsocketGameServer.Services.Room

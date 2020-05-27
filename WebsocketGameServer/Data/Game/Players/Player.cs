@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Net.WebSockets;
 
-namespace WebsocketGameServer.Data.Game.Player
+namespace WebsocketGameServer.Data.Game.Players
 {
     public class Player : IPlayer
     {

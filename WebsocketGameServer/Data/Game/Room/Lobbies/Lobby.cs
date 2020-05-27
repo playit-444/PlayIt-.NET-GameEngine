@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Data.Game.Players;
 using WebsocketGameServer.Data.Messages;
 
 namespace WebsocketGameServer.Data.Game.Room.Lobbies
@@ -79,6 +79,8 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
         {
             if (message == null || string.IsNullOrEmpty(message.Action))
                 return;
+
+            if (Players.Contains(new Player(message.PlayerId))) ;
         }
     }
 }
