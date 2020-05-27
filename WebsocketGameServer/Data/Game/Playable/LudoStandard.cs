@@ -45,12 +45,15 @@ namespace WebsocketGameServer.Data.Game.Playable
         //the ludo tile map
         private LudoTile[] tileMap;
         //the tile that each player will move their pawns to when they get out of home
-        private IDictionary<long, LudoTile> playerHomePads;
+        private IDictionary<long, int> playerHomePads;
         //the tile that correspons to each players goal entrance
-        private IDictionary<long, LudoTile> goalEntrances;
+        private IDictionary<long, int> goalEntrances;
 
         public LudoStandard(int gameType, float turnTimeout, string roomID, HashSet<IPlayer> players)
         {
+            if (players == null)
+                throw new ArgumentNullException(nameof(players));
+
             GameType = gameType;
             TurnTimeout = turnTimeout;
             RoomID = roomID;
@@ -58,6 +61,10 @@ namespace WebsocketGameServer.Data.Game.Playable
 
             long[] playerIds = players.Select(p => p.PlayerId).ToArray();
             TurnQueue = new LinkedList<long>(playerIds);
+
+            playerHomePads = new Dictionary<long, int>(players.Count);
+            goalEntrances = new Dictionary<long, int>(players.Count);
+            pawns = new Dictionary<long, LudoPawn[]>(players.Count);
 
             GenerateMap();
         }
@@ -115,6 +122,9 @@ namespace WebsocketGameServer.Data.Game.Playable
                         Position = -1
                     },
                 });
+
+                goalEntrances.Add(players[i].PlayerId, goalIndex);
+                playerHomePads.Add(players[i].PlayerId, goalIndex + 2);
             }
         }
 
