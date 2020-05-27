@@ -33,12 +33,12 @@ namespace WebsocketGameServer.Data.Game.Room
         /// <summary>
         /// The time each turn can take(max time before turn being skipped) in seconds
         /// </summary>
-        public float TurnTimeout { get; set; }
+        public float TurnTimeout { get; }
 
         /// <summary>
         /// The time that the game was started
         /// </summary>
-        public DateTime StartTime { get; set; }
+        public DateTime StartTime { get; }
 
         /// <summary>
         /// Starts the game
