@@ -79,7 +79,7 @@ namespace WebsocketGameServer.Data.Game.Playable
             }
 
             var players = Players.ToArray();
-            for (int i = 0; i < players.Count; i++)
+            for (int i = 0; i < players.Length; i++)
             {
                 int pawnId;
                 if (i == 0)
