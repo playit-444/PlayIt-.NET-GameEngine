@@ -26,7 +26,6 @@ namespace WebsocketGameServer.Server
 {
     public class GameServer
     {
-
         private readonly string baseUrl = "https://api.444.dk/api/";
 
         //private readonly string baseUrl = "https://localhost:5002/api/";
@@ -65,8 +64,8 @@ namespace WebsocketGameServer.Server
                                     gameController.IdentifierGenerator.CreateID(8),
                                     data.gameTypeId,
                                     Array.Empty<IPlayer>(),
-                                    (byte)data.minimumPlayers,
-                                    (byte)data.maxPlayers,
+                                    (byte) data.minimumPlayers,
+                                    (byte) data.maxPlayers,
                                     $"thunberg deluxe {data.name}"));
                 }
             }
@@ -97,7 +96,7 @@ namespace WebsocketGameServer.Server
             }
 
             //Wait for response for the post request
-            var response = (HttpWebResponse)request.GetResponse();
+            var response = (HttpWebResponse) request.GetResponse();
             var streamResponse = new StreamReader(response.GetResponseStream());
             //Get token from api call
             playerJwtTokenModel =
@@ -227,6 +226,7 @@ namespace WebsocketGameServer.Server
                         //check nulls
                         if (!string.IsNullOrEmpty(args[1]))
                         {
+                            var l = (ILobby) room;
                             //sort the message action types, join/leave/room message and add/remove/send data downwards
                             switch (args[1].ToUpperInvariant())
                             {
@@ -238,6 +238,8 @@ namespace WebsocketGameServer.Server
                                         playerData.Socket = socket;
                                     await gameController.RoomManager.AddPlayer(playerData, room.RoomID)
                                         .ConfigureAwait(false);
+                                    if (playerData != null)
+                                        l.PlayerReadyState[playerData] = false;
                                     await SendMessageAsync(room).ConfigureAwait(false);
                                     break;
                                 case "LEAVE":
@@ -246,7 +248,6 @@ namespace WebsocketGameServer.Server
                                     await SendMessageAsync(room).ConfigureAwait(false);
                                     break;
                                 case "READY":
-                                    var l = (ILobby)room;
                                     if (l.Players.TryGetValue(new Player(playerId), out IPlayer p))
                                     {
                                         if (l.PlayerReadyState.ContainsKey(p))
@@ -256,6 +257,7 @@ namespace WebsocketGameServer.Server
 
                                         await SendMessageAsync(room).ConfigureAwait(false);
                                     }
+
                                     break;
                                 default:
                                     gameController.RoomManager.Rooms[args[0]]
@@ -296,7 +298,7 @@ namespace WebsocketGameServer.Server
 
         private async Task SendMessageAsync(IRoom room)
         {
-            var lobby = (ILobby)room;
+            var lobby = (ILobby) room;
             var playerDatas = new IPlayerData[room.Players.Count];
             for (int i = 0; i < room.Players.Count; i++)
             {
@@ -310,6 +312,7 @@ namespace WebsocketGameServer.Server
                 playerDatas[i] = new PlayerData(playerInformation.PlayerId,
                     playerInformation.Name, readyState);
             }
+
             //Loop all players and tell a player left
             foreach (var roomPlayer in room.Players)
             {
@@ -317,7 +320,7 @@ namespace WebsocketGameServer.Server
                     Encoding.UTF8.GetBytes(
                         JsonConvert.SerializeObject(new LobbyData(playerDatas,
                             lobby.GameType,
-                            lobby.RoomID, lobby.Name, 
+                            lobby.RoomID, lobby.Name,
                             lobby.MaxPlayersNeededToStart,
                             playerDatas.Length, false)));
                 var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
@@ -366,7 +369,7 @@ namespace WebsocketGameServer.Server
                         {
                             if (e.Response != null)
                             {
-                                using (var errorResponse = (HttpWebResponse)e.Response)
+                                using (var errorResponse = (HttpWebResponse) e.Response)
                                 {
                                     using (var reader = new StreamReader(errorResponse.GetResponseStream()))
                                     {
@@ -431,7 +434,7 @@ namespace WebsocketGameServer.Server
             {
                 if (e.Response != null)
                 {
-                    using (var errorResponse = (HttpWebResponse)e.Response)
+                    using (var errorResponse = (HttpWebResponse) e.Response)
                     {
                         using (var reader = new StreamReader(errorResponse.GetResponseStream()))
                         {
