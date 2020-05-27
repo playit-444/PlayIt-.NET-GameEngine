@@ -254,7 +254,6 @@ namespace WebsocketGameServer.Server
                                         {
                                             l.PlayerReadyState[p] = !l.PlayerReadyState[p];
                                         }
-
                                         await SendMessageAsync(room).ConfigureAwait(false);
                                     }
 

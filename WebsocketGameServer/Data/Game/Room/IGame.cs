@@ -51,14 +51,6 @@ namespace WebsocketGameServer.Data.Game.Room
         public void AdvanceTurn();
 
         /// <summary>
-        /// Receives and processes an incoming player action
-        /// </summary>
-        /// <param name="player">The player performing the action</param>
-        /// <param name="action">The action being performed</param>
-        /// <param name="args">The arguments, if any, provided with the action</param>
-        public void ReceiveAction(IPlayer player, string action, object[] args);
-
-        /// <summary>
         /// Ends the game
         /// </summary>
         /// <returns>The player scores</returns>
