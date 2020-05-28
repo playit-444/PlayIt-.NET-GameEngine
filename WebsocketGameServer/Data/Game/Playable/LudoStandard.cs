@@ -10,7 +10,6 @@ using WebsocketGameServer.Data.Game.Players;
 using WebsocketGameServer.Data.Game.Room;
 using WebsocketGameServer.Data.Messages;
 using WebsocketGameServer.Data.Models.Games;
-using WebsocketGameServer.Data.Models.Rooms;
 
 namespace WebsocketGameServer.Data.Game.Playable
 {
@@ -45,6 +44,9 @@ namespace WebsocketGameServer.Data.Game.Playable
             GLOBE = 2,
             GOAL_ENTRANCE = 4
         }
+
+        //
+        private IDictionary<int, LudoPawn> goalRow;
 
         //owner to owned map
         private IDictionary<long, LudoPawn[]> pawns;
@@ -152,6 +154,7 @@ namespace WebsocketGameServer.Data.Game.Playable
         public event IGame.GameStateHandler GameStateChanged;
 
         private int Roll { get; set; }
+        private int RollAttempts { get; set; }
 
         public void AdvanceTurn()
         {
@@ -162,7 +165,7 @@ namespace WebsocketGameServer.Data.Game.Playable
                 CurrentPlayerTurn = turn.Next.Value;
         }
 
-        public int RollDice()
+        private int RollDice()
         {
             return new Random().Next(1, 7);
         }
@@ -191,17 +194,67 @@ namespace WebsocketGameServer.Data.Game.Playable
                 switch (action)
                 {
                     case "ROLL":
-                        args = new object[1];
-                        Roll = RollDice();
-                        args[0] = Roll;
-                        await SendMessageAsync(new GameMessage(RoomID, action, args)).ConfigureAwait(false);
+                        args = new object[2];
+                        //Check have many rolls the player have
+                        short totalRollAmount = RollAmount(message.PlayerId);
+                        //Check if the player have any tries left
+                        if (RollAttempts < totalRollAmount)
+                        {
+                            RollAttempts += 1;
+
+                            //All pieces in start zone
+                            if (totalRollAmount > 1)
+                            {
+                                //Need to role a 6 to get a piece out of starting zone
+                                if (RollDice() == 6)
+                                {
+                                    //Move a random piece from bench to board
+                                    var pawn = pawns[message.PlayerId].FirstOrDefault(a => a.Position == -1);
+                                    if (pawn != null)
+                                    {
+                                        var moveArgs = new object[3];
+                                        pawn.Position = playerHomePads[message.PlayerId];
+                                        moveArgs[0] = message.PlayerId;
+                                        moveArgs[1] = pawn.Id;
+                                        moveArgs[2] = pawn.Position;
+                                        await SendMessageAsync(new GameMessage(RoomID, action, moveArgs))
+                                            .ConfigureAwait(false);
+                                    }
+
+                                    NextTurn();
+                                }
+
+                                if (RollAttempts == 3)
+                                {
+                                    //No roll left
+                                    NextTurn();
+                                }
+                            }
+                            else
+                            {
+                                //Normal roll
+                                Roll = RollDice();
+                                args[0] = message.PlayerId;
+                                args[1] = Roll;
+                                await SendMessageAsync(new GameMessage(RoomID, action, args)).ConfigureAwait(false);
+                            }
+                        }
+                        else
+                        {
+                            //TODO should not be possible to hit this
+                            throw new NotImplementedException();
+                        }
+
                         break;
                     case "MOVE":
-                        args = new object[2];
+                        RollAttempts = 0;
+                        args = new object[3];
                         //Check parameters
                         if (message.Args[0] is int pawnId && Roll != 0)
                         {
-                            //Find player pawn
+                            //TODO Goal stuff
+
+                            //Find the pawn the player is trying to move
                             var playerPawn = pawns[message.PlayerId][pawnId];
 
                             //Calculate new position for pawn
@@ -210,17 +263,16 @@ namespace WebsocketGameServer.Data.Game.Playable
                             //TODO GOAL ROW
                             //if (newPosition > playerHomePads[message.PlayerId] && playerPawn.Position < playerHomePads[message.PlayerId])
 
-                            //Check if pawn lands on star then jump to next start
+                            //Check if pawn lands on star then jump to next star
                             if ((tileMap[newPosition].Type & (int) TileType.STAR) == (int) TileType.STAR)
                             {
                                 newPosition = JumpNextStar(newPosition);
                             }
 
-                            //Check if there are other pawns on the same potion
+                            //Get a list of pawns on the same position
                             var pawnsOnPosition = PawnsOnPosition(newPosition);
 
-
-                            args[1] = newPosition;
+                            args[2] = newPosition;
                             playerPawn.Position = newPosition;
 
                             //Loop other pawns if there are any
@@ -229,19 +281,20 @@ namespace WebsocketGameServer.Data.Game.Playable
                                 //Check if other player's pawns
                                 if (otherPawn.Owner != message.PlayerId)
                                 {
-                                    //If pawn lands on a globus it kill itself.
+                                    //If the player's pawn land on a globe where a other pawn is already standing it kill itself.
                                     if ((tileMap[newPosition].Type & (int) TileType.GLOBE) == (int) TileType.GLOBE)
                                     {
                                         //Suicide
-                                        args[1] = -1;
+                                        args[2] = -1;
                                         playerPawn.Position = -1;
                                     }
                                     else
                                     {
                                         //KILL otherPawn
-                                        var argsKill = new object[2];
-                                        argsKill[0] = otherPawn.Owner + "|" + otherPawn.Id;
-                                        argsKill[1] = -1;
+                                        var argsKill = new object[3];
+                                        argsKill[0] = otherPawn.Owner;
+                                        argsKill[1] = otherPawn.Id;
+                                        argsKill[2] = -1;
                                         otherPawn.Position = -1;
                                         await SendMessageAsync(new GameMessage(RoomID, action, argsKill))
                                             .ConfigureAwait(false);
@@ -251,9 +304,10 @@ namespace WebsocketGameServer.Data.Game.Playable
 
                             //Clear roll
                             Roll = 0;
-                            args[0] = message.PlayerId + "|" + pawnId;
+                            args[0] = message.PlayerId;
+                            args[1] = pawnId;
                             await SendMessageAsync(new GameMessage(RoomID, action, args)).ConfigureAwait(false);
-                            //NEXT TURN HOW THE FUCK
+                            NextTurn();
                         }
 
                         break;
@@ -312,6 +366,24 @@ namespace WebsocketGameServer.Data.Game.Playable
 
             //If no stars is found after the index it's because it was the last star before index starts over
             return 0;
+        }
+
+        private short RollAmount(in long messagePlayerId)
+        {
+            //Check Amount of pawns not in start zone
+            var pawnsNotInStartZone = pawns[messagePlayerId].Where(a => a.Position != -1);
+            if (pawnsNotInStartZone.Any())
+            {
+                return 1;
+            }
+
+            return 3;
+        }
+
+        private void NextTurn()
+        {
+            RollAttempts = 0;
+            CurrentPlayerTurn = TurnQueue.Find(CurrentPlayerTurn).Next.Value;
         }
 
         public void Start()
