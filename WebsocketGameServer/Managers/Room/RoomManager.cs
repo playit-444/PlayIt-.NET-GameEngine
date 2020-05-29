@@ -178,7 +178,7 @@ namespace WebsocketGameServer.Managers.Room
                     {
                         Lobby newLobby =
                             new Lobby(
-                                IdGenerator.CreateID(8),
+                                IdGenerator.CreateID(4),
                                 "automaticically created room",
                                 lobby.GameType,
                                 Array.Empty<IPlayer>(),

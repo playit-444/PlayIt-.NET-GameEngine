@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -61,13 +62,17 @@ namespace WebsocketGameServer.Server
                         .AddRoom(
                             gameController.LobbyService
                                 .CreateLobby(
-                                    gameController.IdentifierGenerator.CreateID(8),
+                                    gameController.IdentifierGenerator.CreateID(4),
                                     data.gameTypeId,
                                     Array.Empty<IPlayer>(),
                                     (byte) data.minimumPlayers,
                                     (byte) data.maxPlayers,
                                     $"thunberg deluxe {data.name}"));
                 }
+
+                gameController.RoomManager.AddRoom(
+                    gameController.ChatRoomService.CreateChatRoom(data.gameTypeId.ToString(CultureInfo.CurrentCulture),
+                        null, null));
             }
         }
 
@@ -156,7 +161,6 @@ namespace WebsocketGameServer.Server
                 if (string.IsNullOrEmpty(key))
                     return;
 
-
                 //TODO under dosent work so this is a quick fix. think it something about empty chars at end
                 key = key.Split("\"")[1];
 
@@ -213,10 +217,26 @@ namespace WebsocketGameServer.Server
                     if (args.Length < 1 || string.IsNullOrEmpty(args[0]))
                         continue;
 
-                    //check if the client want to create a new room
-                    if (args[0].ToUpperInvariant().Equals("CREATE", StringComparison.InvariantCultureIgnoreCase))
+                    //Check if the client want to create a new room
+                    if (args[0].Equals("CREATE", StringComparison.InvariantCultureIgnoreCase))
                     {
                         //gamecontroller lobbyservice create call
+                    }
+
+                    //long playerId, string action, object[] args
+
+                    //PlayerId = Person der sender
+                    //Action = LOBBY/BORD
+                    //Object[] = [0] = SpilType/bordId, [1] = Besked
+
+                    //PlayerId = Person der sender
+                    //Action = WHISPER
+                    //Object[] = BESKED
+
+
+                    //Check if message
+                    if (args[0].Equals("MESSAGE", StringComparison.CurrentCultureIgnoreCase))
+                    {
                     }
 
                     //if not, treat all requests as a room request
@@ -254,6 +274,7 @@ namespace WebsocketGameServer.Server
                                         {
                                             l.PlayerReadyState[p] = !l.PlayerReadyState[p];
                                         }
+
                                         await SendMessageAsync(room).ConfigureAwait(false);
                                     }
 

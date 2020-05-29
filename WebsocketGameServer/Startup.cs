@@ -15,13 +15,14 @@ namespace WebsocketGameServer
 {
     public class Startup
     {
-        WebsocketGameServer.Server.GameServer server =
-            new WebsocketGameServer.Server.GameServer(
+        Server.GameServer server =
+            new Server.GameServer(
                 new Controllers.GameController(
                     new RoomManager(),
                     new PlayerVerificationService(),
                     new HexIdGenerator(),
-                    new LobbyService()));
+                    new LobbyService(),
+                    new ChatRoomService()));
 
         public Startup(IConfiguration configuration)
         {

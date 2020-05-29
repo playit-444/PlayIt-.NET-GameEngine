@@ -50,6 +50,14 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
             return true;
         }
 
+        public virtual void ReceiveMessage(IRoomMessage message)
+        {
+            if (message == null || string.IsNullOrEmpty(message.Action))
+                return;
+
+            if (Players.Contains(new Player(message.PlayerId))) ;
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!isDisposed)
@@ -73,14 +81,6 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        public virtual void ReceiveMessage(IRoomMessage message)
-        {
-            if (message == null || string.IsNullOrEmpty(message.Action))
-                return;
-
-            if (Players.Contains(new Player(message.PlayerId))) ;
         }
     }
 }

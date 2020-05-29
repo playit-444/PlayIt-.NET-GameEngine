@@ -17,6 +17,7 @@ namespace WebsocketGameServer.Controllers
 
         public IIdentifierGenerator IdentifierGenerator { get; private set; }
         public ILobbyService LobbyService { get; }
+        public IChatRoomService ChatRoomService { get; }
         public IRoomManager RoomManager { get; }
 
         public IDictionary<int, string> GameTypes { get; private set; }
@@ -25,12 +26,14 @@ namespace WebsocketGameServer.Controllers
             IRoomManager roomManager,
             IVerificationService<PlayerVerificationResponseModel> VerificationService,
             IIdentifierGenerator identifierGenerator,
-            ILobbyService lobbyService)
+            ILobbyService lobbyService,
+            IChatRoomService chatRoomService)
         {
             verificationService = VerificationService;
             RoomManager = roomManager;
             IdentifierGenerator = identifierGenerator;
             LobbyService = lobbyService;
+            ChatRoomService = chatRoomService;
 
             Players = new HashSet<IPlayer>();
             GameTypes = new Dictionary<int, string>();

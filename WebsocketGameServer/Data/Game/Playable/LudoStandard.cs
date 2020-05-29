@@ -45,8 +45,8 @@ namespace WebsocketGameServer.Data.Game.Playable
             GOAL_ENTRANCE = 4
         }
 
-        //
-        private IDictionary<int, LudoPawn> goalRow;
+        //5 is done
+        private IDictionary<LudoPawn, int> goalRow;
 
         //owner to owned map
         private IDictionary<long, LudoPawn[]> pawns;
@@ -76,8 +76,41 @@ namespace WebsocketGameServer.Data.Game.Playable
             playerHomePads = new Dictionary<long, int>(players.Count);
             goalEntrances = new Dictionary<long, int>(players.Count);
             pawns = new Dictionary<long, LudoPawn[]>(players.Count);
+            goalRow = new Dictionary<LudoPawn, int>();
 
             GenerateMap();
+            Initialize(players);
+        }
+
+        /// <summary>
+        /// Initialize message to clients
+        /// </summary>
+        /// <param name="players"></param>
+        private async void Initialize(HashSet<IPlayer> players)
+        {
+            var args = new object[2];
+            var playerDataSimples = new Dictionary<int, PlayerDataSimple>();
+
+            int count = 0;
+            foreach (var player in players)
+            {
+                playerDataSimples.Add(count, new PlayerDataSimple(player.PlayerId, player.Name));
+                count++;
+            }
+
+            args[0] = playerDataSimples;
+
+            foreach (var roomPlayer in Players)
+            {
+                args[1] = roomPlayer.PlayerId;
+                var encoded =
+                    Encoding.UTF8.GetBytes(
+                        JsonConvert.SerializeObject(new GameMessage(RoomID, "INIT", args)));
+                var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
+                await roomPlayer.Socket.SendAsync(buffers, WebSocketMessageType.Text, true,
+                        CancellationToken.None)
+                    .ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -108,7 +141,16 @@ namespace WebsocketGameServer.Data.Game.Playable
                 else
                 {
                     pawnId = i * 4;
-                    goalIndex = i * 13;
+
+                    //Check only 2 players are playing skip green and spawn second player at orange
+                    if (players.Length == 2)
+                    {
+                        goalIndex = (i + 1) * 13;
+                    }
+                    else
+                    {
+                        goalIndex = i * 13;
+                    }
                 }
 
                 pawns.Add(players[i].PlayerId, new LudoPawn[]
@@ -156,13 +198,19 @@ namespace WebsocketGameServer.Data.Game.Playable
         private int Roll { get; set; }
         private int RollAttempts { get; set; }
 
-        public void AdvanceTurn()
+        public async void AdvanceTurn()
         {
             var turn = TurnQueue.Find(CurrentPlayerTurn);
             if (turn.Next == null)
                 CurrentPlayerTurn = TurnQueue.First.Value;
             else
                 CurrentPlayerTurn = turn.Next.Value;
+
+            RollAttempts = 0;
+            var args = new object[1];
+            args[0] = CurrentPlayerTurn;
+            await SendMessageAsync(new GameMessage(RoomID, "NEXTTURN", args))
+                .ConfigureAwait(false);
         }
 
         private int RollDice()
@@ -212,22 +260,21 @@ namespace WebsocketGameServer.Data.Game.Playable
                                     var pawn = pawns[message.PlayerId].FirstOrDefault(a => a.Position == -1);
                                     if (pawn != null)
                                     {
-                                        var moveArgs = new object[3];
+                                        var moveArgs = new object[2];
                                         pawn.Position = playerHomePads[message.PlayerId];
-                                        moveArgs[0] = message.PlayerId;
-                                        moveArgs[1] = pawn.Id;
-                                        moveArgs[2] = pawn.Position;
+                                        moveArgs[0] = pawn.Id;
+                                        moveArgs[1] = pawn.Position;
                                         await SendMessageAsync(new GameMessage(RoomID, action, moveArgs))
                                             .ConfigureAwait(false);
                                     }
 
-                                    NextTurn();
+                                    AdvanceTurn();
                                 }
 
                                 if (RollAttempts == 3)
                                 {
                                     //No roll left
-                                    NextTurn();
+                                    AdvanceTurn();
                                 }
                             }
                             else
@@ -247,21 +294,48 @@ namespace WebsocketGameServer.Data.Game.Playable
 
                         break;
                     case "MOVE":
+                        if (Roll == 0)
+                            return;
+
                         RollAttempts = 0;
-                        args = new object[3];
+                        args = new object[2];
                         //Check parameters
                         if (message.Args[0] is int pawnId && Roll != 0)
                         {
-                            //TODO Goal stuff
-
                             //Find the pawn the player is trying to move
                             var playerPawn = pawns[message.PlayerId][pawnId];
 
                             //Calculate new position for pawn
                             int newPosition = CalculateNewPosition(playerPawn.Position + Roll);
 
-                            //TODO GOAL ROW
-                            //if (newPosition > playerHomePads[message.PlayerId] && playerPawn.Position < playerHomePads[message.PlayerId])
+
+                            //Pawn move inside goal zone
+                            if (playerPawn.Position == -2)
+                            {
+                                goalRow[playerPawn] = goalRow[playerPawn] + Roll;
+                                AdvanceTurn();
+                                return;
+                            }
+
+                            //Pawn hit goal zone
+                            if (playerPawn.Position + Roll > playerHomePads[message.PlayerId] &&
+                                playerPawn.Position <= playerHomePads[message.PlayerId])
+                            {
+                                //Hit the star before own goal so jump to end
+                                if (newPosition == playerHomePads[message.PlayerId])
+                                {
+                                    goalRow.Add(playerPawn, 5);
+                                    playerPawn.Position = -2;
+                                }
+                                else
+                                {
+                                    var goalPosition = newPosition - playerHomePads[message.PlayerId];
+                                    goalRow.Add(playerPawn, goalPosition);
+                                }
+
+                                AdvanceTurn();
+                                return;
+                            }
 
                             //Check if pawn lands on star then jump to next star
                             if ((tileMap[newPosition].Type & (int) TileType.STAR) == (int) TileType.STAR)
@@ -285,16 +359,15 @@ namespace WebsocketGameServer.Data.Game.Playable
                                     if ((tileMap[newPosition].Type & (int) TileType.GLOBE) == (int) TileType.GLOBE)
                                     {
                                         //Suicide
-                                        args[2] = -1;
+                                        args[1] = -1;
                                         playerPawn.Position = -1;
                                     }
                                     else
                                     {
                                         //KILL otherPawn
                                         var argsKill = new object[3];
-                                        argsKill[0] = otherPawn.Owner;
-                                        argsKill[1] = otherPawn.Id;
-                                        argsKill[2] = -1;
+                                        argsKill[0] = otherPawn.Id;
+                                        argsKill[1] = -1;
                                         otherPawn.Position = -1;
                                         await SendMessageAsync(new GameMessage(RoomID, action, argsKill))
                                             .ConfigureAwait(false);
@@ -304,10 +377,9 @@ namespace WebsocketGameServer.Data.Game.Playable
 
                             //Clear roll
                             Roll = 0;
-                            args[0] = message.PlayerId;
-                            args[1] = pawnId;
+                            args[0] = pawnId;
                             await SendMessageAsync(new GameMessage(RoomID, action, args)).ConfigureAwait(false);
-                            NextTurn();
+                            AdvanceTurn();
                         }
 
                         break;
@@ -380,15 +452,10 @@ namespace WebsocketGameServer.Data.Game.Playable
             return 3;
         }
 
-        private void NextTurn()
-        {
-            RollAttempts = 0;
-            CurrentPlayerTurn = TurnQueue.Find(CurrentPlayerTurn).Next.Value;
-        }
-
         public void Start()
         {
-            CurrentPlayerTurn = TurnQueue.First.Value;
+            if (TurnQueue.First != null)
+                CurrentPlayerTurn = TurnQueue.First.Value;
             //create board
             //assign player 'teams'
             //grant player turn

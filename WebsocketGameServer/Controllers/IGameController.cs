@@ -36,5 +36,7 @@ namespace WebsocketGameServer.Controllers
         /// A list of the game type id and the name of the game attached to it
         /// </summary>
         public IDictionary<int, string> GameTypes { get; }
+
+        public IChatRoomService ChatRoomService { get; }
     }
 }
