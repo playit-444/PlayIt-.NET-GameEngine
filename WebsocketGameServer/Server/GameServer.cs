@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -58,16 +57,23 @@ namespace WebsocketGameServer.Server
 
                 for (int i = 0; i < 2; i++)
                 {
+                    var roomId = gameController.IdentifierGenerator.CreateID(4);
+
                     gameController.RoomManager
                         .AddRoom(
                             gameController.LobbyService
                                 .CreateLobby(
-                                    gameController.IdentifierGenerator.CreateID(4),
+                                    roomId,
                                     data.gameTypeId,
                                     Array.Empty<IPlayer>(),
                                     (byte) data.minimumPlayers,
                                     (byte) data.maxPlayers,
                                     $"thunberg deluxe {data.name}"));
+
+                    //Add chatRoom to auto generated rooms
+                    gameController.RoomManager.AddRoom(
+                        gameController.ChatRoomService.CreateChatRoom(roomId+"-TABLECHAT",
+                            null, null));
                 }
 
                 gameController.RoomManager.AddRoom(
@@ -246,7 +252,6 @@ namespace WebsocketGameServer.Server
                         //check nulls
                         if (!string.IsNullOrEmpty(args[1]))
                         {
-                            var l = (ILobby) room;
                             //sort the message action types, join/leave/room message and add/remove/send data downwards
                             switch (args[1].ToUpperInvariant())
                             {
@@ -259,8 +264,12 @@ namespace WebsocketGameServer.Server
                                     await gameController.RoomManager.AddPlayer(playerData, room.RoomID)
                                         .ConfigureAwait(false);
                                     if (playerData != null)
-                                        l.PlayerReadyState[playerData] = false;
-                                    await SendMessageAsync(room).ConfigureAwait(false);
+                                        if (room is ILobby l)
+                                        {
+                                            l.PlayerReadyState[playerData] = false;
+                                            await SendMessageAsync(l).ConfigureAwait(false);
+                                        }
+
                                     break;
                                 case "LEAVE":
                                     await gameController.RoomManager.RemovePlayer(new Player(playerId), room.RoomID)
@@ -268,11 +277,12 @@ namespace WebsocketGameServer.Server
                                     await SendMessageAsync(room).ConfigureAwait(false);
                                     break;
                                 case "READY":
-                                    if (l.Players.TryGetValue(new Player(playerId), out IPlayer p))
+                                    var lr = (ILobby) room;
+                                    if (lr.Players.TryGetValue(new Player(playerId), out IPlayer p))
                                     {
-                                        if (l.PlayerReadyState.ContainsKey(p))
+                                        if (lr.PlayerReadyState.ContainsKey(p))
                                         {
-                                            l.PlayerReadyState[p] = !l.PlayerReadyState[p];
+                                            lr.PlayerReadyState[p] = !lr.PlayerReadyState[p];
                                         }
 
                                         await SendMessageAsync(room).ConfigureAwait(false);
@@ -281,7 +291,7 @@ namespace WebsocketGameServer.Server
                                     break;
                                 default:
                                     gameController.RoomManager.Rooms[args[0]]
-                                        .ReceiveMessage(new RoomMessage(playerId, args[0], args[1..]));
+                                        .ReceiveMessage(new RoomMessage(playerId, args[1], args[2..]));
                                     break;
                             }
                         }
@@ -318,35 +328,37 @@ namespace WebsocketGameServer.Server
 
         private async Task SendMessageAsync(IRoom room)
         {
-            var lobby = (ILobby) room;
-            var playerDatas = new IPlayerData[room.Players.Count];
-            for (int i = 0; i < room.Players.Count; i++)
+            if (room is ILobby lobby)
             {
-                var playerInformation = room.Players.ToArray()[i];
-                bool readyState = false;
-                if (lobby.PlayerReadyState.ContainsKey(playerInformation))
+                var playerDatas = new IPlayerData[room.Players.Count];
+                for (int i = 0; i < room.Players.Count; i++)
                 {
-                    readyState = lobby.PlayerReadyState[playerInformation];
+                    var playerInformation = room.Players.ToArray()[i];
+                    bool readyState = false;
+                    if (lobby.PlayerReadyState.ContainsKey(playerInformation))
+                    {
+                        readyState = lobby.PlayerReadyState[playerInformation];
+                    }
+
+                    playerDatas[i] = new PlayerData(playerInformation.PlayerId,
+                        playerInformation.Name, readyState);
                 }
 
-                playerDatas[i] = new PlayerData(playerInformation.PlayerId,
-                    playerInformation.Name, readyState);
-            }
-
-            //Loop all players and tell a player left
-            foreach (var roomPlayer in room.Players)
-            {
-                var encoded =
-                    Encoding.UTF8.GetBytes(
-                        JsonConvert.SerializeObject(new LobbyData(playerDatas,
-                            lobby.GameType,
-                            lobby.RoomID, lobby.Name,
-                            lobby.MaxPlayersNeededToStart,
-                            playerDatas.Length, false)));
-                var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
-                await roomPlayer.Socket.SendAsync(buffers, WebSocketMessageType.Text, true,
-                        CancellationToken.None)
-                    .ConfigureAwait(false);
+                //Loop all players and tell a player left
+                foreach (var roomPlayer in room.Players)
+                {
+                    var encoded =
+                        Encoding.UTF8.GetBytes(
+                            JsonConvert.SerializeObject(new LobbyData(playerDatas,
+                                lobby.GameType,
+                                lobby.RoomID, lobby.Name,
+                                lobby.MaxPlayersNeededToStart,
+                                playerDatas.Length, false)));
+                    var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
+                    await roomPlayer.Socket.SendAsync(buffers, WebSocketMessageType.Text, true,
+                            CancellationToken.None)
+                        .ConfigureAwait(false);
+                }
             }
         }
 

@@ -6,6 +6,7 @@ using WebsocketGameServer.Data.Constants;
 using WebsocketGameServer.Data.Game.Players;
 using WebsocketGameServer.Data.Game.Room;
 using WebsocketGameServer.Data.Game.Room.Lobbies;
+using WebsocketGameServer.Data.Models.Rooms.ChatRooms;
 using WebsocketGameServer.Models.Args;
 using WebsocketGameServer.Services.Generators;
 using WebsocketGameServer.Services.Room;
@@ -16,6 +17,7 @@ namespace WebsocketGameServer.Managers.Room
     {
         //the gametype and the amount of lobbies with that type
         private IDictionary<int, int> openLobbies;
+
         //internal lobby service for creating empty mandatory lobbies
         private IIdentifierGenerator IdGenerator;
 
@@ -65,7 +67,7 @@ namespace WebsocketGameServer.Managers.Room
                 if (PlayerRooms.ContainsKey(player))
                     PlayerRooms[player].Add(Rooms[roomId]);
                 else
-                    PlayerRooms.Add(player, new List<IRoom>() { Rooms[roomId] });
+                    PlayerRooms.Add(player, new List<IRoom>() {Rooms[roomId]});
 
                 //invoke event to notify listerners of the new state of the room
                 RoomStateChanged?.Invoke(new RoomArgs(Rooms[roomId], RoomActionType.UPDATE));
@@ -91,7 +93,6 @@ namespace WebsocketGameServer.Managers.Room
             if (string.IsNullOrEmpty(roomId))
                 throw new ArgumentNullException(nameof(roomId));
 
-            //TODO PETER added Rooms.ContainsKey(roomId)
             if (Rooms.ContainsKey(roomId))
             {
                 //make sure the player is in the room
@@ -104,6 +105,9 @@ namespace WebsocketGameServer.Managers.Room
                     //check whether the room is now empty and delete if that's the case
                     if (Rooms[roomId].Players.Count < 1)
                     {
+                        if (Rooms[roomId] is IChatRoom)
+                            return true;
+
                         //invoke event to notify listeners of the deleted room
                         RoomStateChanged?.Invoke(new RoomArgs(Rooms[roomId], RoomActionType.DELETE));
 
