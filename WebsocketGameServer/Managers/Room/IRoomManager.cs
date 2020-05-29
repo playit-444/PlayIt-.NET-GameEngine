@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Data.Game.Players;
 using WebsocketGameServer.Data.Game.Room;
 using WebsocketGameServer.Models.Args;
 

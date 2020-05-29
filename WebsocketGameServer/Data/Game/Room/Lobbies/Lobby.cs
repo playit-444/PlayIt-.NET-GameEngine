@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Data.Game.Players;
 using WebsocketGameServer.Data.Messages;
 
 namespace WebsocketGameServer.Data.Game.Room.Lobbies
@@ -14,14 +14,16 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
     {
         private bool isDisposed = false; // To detect redundant dispose calls
 
-        public Lobby(string roomID, string name, int gameType, IPlayer[] initialPlayers, byte minPlayersNeededToStart, byte maxPlayersNeededToStart)
+        public Lobby(string roomID, string name, int gameType, IPlayer[] initialPlayers, byte minPlayersNeededToStart,
+            byte maxPlayersNeededToStart)
         {
             RoomID = roomID;
             Name = name;
             GameType = gameType;
             MinPlayersNeededToStart = minPlayersNeededToStart;
             MaxPlayersNeededToStart = maxPlayersNeededToStart;
-
+            Players = new HashSet<IPlayer>();
+            PlayerReadyState = new Dictionary<IPlayer, bool>();
 
             if (initialPlayers == null)
                 initialPlayers = Array.Empty<IPlayer>();
@@ -29,8 +31,8 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
 
         public int GameType { get; private set; }
         public string Name { get; private set; }
-        public IDictionary<IPlayer, bool> PlayerReadyState { get; private set; }
         public string RoomID { get; private set; }
+        public IDictionary<IPlayer, bool> PlayerReadyState { get; private set; }
         public HashSet<IPlayer> Players { get; private set; }
 
         public byte MinPlayersNeededToStart { get; private set; }
@@ -42,7 +44,7 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
             if (player == null || player.PlayerId.Equals(0) || player.Socket == null)
                 return false;
 
-            if (Players.Count >= (int)MaxPlayersNeededToStart)
+            if (Players.Count >= (int) MaxPlayersNeededToStart)
                 return false;
 
             return true;
@@ -77,6 +79,8 @@ namespace WebsocketGameServer.Data.Game.Room.Lobbies
         {
             if (message == null || string.IsNullOrEmpty(message.Action))
                 return;
+
+            if (Players.Contains(new Player(message.PlayerId))) ;
         }
     }
 }

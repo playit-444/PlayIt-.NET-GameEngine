@@ -389,3 +389,4 @@ C:\Users\Peter\source\playit\PlayIt-.NET-GameEngine\WebsocketGameServer\obj\Debu
 C:\Users\Peter\source\playit\PlayIt-.NET-GameEngine\WebsocketGameServer\obj\Debug\netcoreapp3.1\WebsocketGameServer.dll
 C:\Users\Peter\source\playit\PlayIt-.NET-GameEngine\WebsocketGameServer\obj\Debug\netcoreapp3.1\WebsocketGameServer.pdb
 C:\Users\Peter\source\playit\PlayIt-.NET-GameEngine\WebsocketGameServer\obj\Debug\netcoreapp3.1\WebsocketGameServer.genruntimeconfig.cache
+D:\Github Projects\PlayIt-.NET-GameEngine\WebsocketGameServer\obj\Debug\netcoreapp3.1\WebsocketGameServer.MvcApplicationPartsAssemblyInfo.cache

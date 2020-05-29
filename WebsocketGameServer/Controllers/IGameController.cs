@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GameServer.Services.Generators;
-using WebsocketGameServer.Data.Game.Player;
+using WebsocketGameServer.Services.Generators;
+using WebsocketGameServer.Data.Game.Players;
 using WebsocketGameServer.Managers.Room;
 using WebsocketGameServer.Models.Player;
 using WebsocketGameServer.Services.Room;
@@ -31,5 +31,10 @@ namespace WebsocketGameServer.Controllers
         /// The lobby service responsible for creating lobby gamerooms
         /// </summary>
         public ILobbyService LobbyService { get; }
+
+        /// <summary>
+        /// A list of the game type id and the name of the game attached to it
+        /// </summary>
+        public IDictionary<int, string> GameTypes { get; }
     }
 }
