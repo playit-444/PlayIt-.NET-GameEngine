@@ -36,15 +36,13 @@ namespace WebsocketGameServer.Data.Models.Rooms.ChatRooms
         {
             if (player == null)
                 throw new ArgumentNullException(nameof(player));
-            if (string.IsNullOrEmpty(message))
-                throw new ArgumentNullException(nameof(message));
-
+            if (string.IsNullOrEmpty(message)) return;
             var args = new object[2];
             args[0] = message;
             args[1] = player.Name;
             string action;
 
-            if (int.TryParse(RoomID, out int n))
+            if (RoomID.Contains("LOBBYCHAT"))
             {
                 action = "MSG|LOBBY";
             }

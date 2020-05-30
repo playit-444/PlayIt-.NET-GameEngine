@@ -77,7 +77,7 @@ namespace WebsocketGameServer.Server
                 }
 
                 gameController.RoomManager.AddRoom(
-                    gameController.ChatRoomService.CreateChatRoom(data.gameTypeId.ToString(CultureInfo.CurrentCulture),
+                    gameController.ChatRoomService.CreateChatRoom(data.gameTypeId.ToString(CultureInfo.CurrentCulture)+"-LOBBYCHAT",
                         null, null));
             }
         }

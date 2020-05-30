@@ -102,7 +102,8 @@ namespace WebsocketGameServer.Managers.Room
                     PlayerRooms[player].Remove(Rooms[roomId]);
                     Rooms[roomId].Players.Remove(player);
 
-                    //check whether the room is now empty and delete if that's the case
+                    //TODO Find a better way to handle this
+                    /*//check whether the room is now empty and delete if that's the case
                     if (Rooms[roomId].Players.Count < 1)
                     {
                         if (Rooms[roomId] is IChatRoom)
@@ -114,7 +115,7 @@ namespace WebsocketGameServer.Managers.Room
                         //remove the room
                         RemoveRoom(roomId);
                         return true;
-                    }
+                    }*/
 
                     //invoke event to notify listeners of the updated room
                     RoomStateChanged?.Invoke(new RoomArgs(Rooms[roomId], RoomActionType.UPDATE));
