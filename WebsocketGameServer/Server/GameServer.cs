@@ -21,6 +21,7 @@ using WebsocketGameServer.Data.Models.Players;
 using WebsocketGameServer.Models.Args;
 using WebsocketGameServer.Models.Player;
 using WebsocketGameServer.Data.Game.Players;
+using WebsocketGameServer.Data.Models.Rooms.ChatRooms;
 
 namespace WebsocketGameServer.Server
 {
@@ -55,29 +56,32 @@ namespace WebsocketGameServer.Server
             {
                 gameController.GameTypes.Add(data.gameTypeId, data.name);
 
-                for (int i = 0; i < 2; i++)
+                for (int i = 0; i < 3; i++)
                 {
                     var roomId = gameController.IdentifierGenerator.CreateID(4);
 
+                    var lobby = gameController.LobbyService
+                        .CreateLobby(
+                            roomId,
+                            data.gameTypeId,
+                            Array.Empty<IPlayer>(),
+                            (byte) data.minimumPlayers,
+                            (byte) data.maxPlayers,
+                            $"thunberg deluxe {data.name}");
+                    lobby.OnTimerStart += gameController.HandleGameTimerStartEvent;
+
                     gameController.RoomManager
-                        .AddRoom(
-                            gameController.LobbyService
-                                .CreateLobby(
-                                    roomId,
-                                    data.gameTypeId,
-                                    Array.Empty<IPlayer>(),
-                                    (byte) data.minimumPlayers,
-                                    (byte) data.maxPlayers,
-                                    $"thunberg deluxe {data.name}"));
+                        .AddRoom(lobby);
 
                     //Add chatRoom to auto generated rooms
                     gameController.RoomManager.AddRoom(
-                        gameController.ChatRoomService.CreateChatRoom(roomId+"-TABLECHAT",
+                        gameController.ChatRoomService.CreateChatRoom(roomId + "-TABLECHAT",
                             null, null));
                 }
 
                 gameController.RoomManager.AddRoom(
-                    gameController.ChatRoomService.CreateChatRoom(data.gameTypeId.ToString(CultureInfo.CurrentCulture)+"-LOBBYCHAT",
+                    gameController.ChatRoomService.CreateChatRoom(
+                        data.gameTypeId.ToString(CultureInfo.CurrentCulture) + "-LOBBYCHAT",
                         null, null));
             }
         }
@@ -229,17 +233,6 @@ namespace WebsocketGameServer.Server
                         //gamecontroller lobbyservice create call
                     }
 
-                    //long playerId, string action, object[] args
-
-                    //PlayerId = Person der sender
-                    //Action = LOBBY/BORD
-                    //Object[] = [0] = SpilType/bordId, [1] = Besked
-
-                    //PlayerId = Person der sender
-                    //Action = WHISPER
-                    //Object[] = BESKED
-
-
                     //Check if message
                     if (args[0].Equals("MESSAGE", StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -257,37 +250,34 @@ namespace WebsocketGameServer.Server
                             {
                                 case "JOIN":
                                     if (gameController.Players.TryGetValue(new Player(playerId),
-                                            out IPlayer playerData) &&
-                                        room.PlayerCanJoinRoom(playerData))
-                                        // Overwrite socket
-                                        playerData.Socket = socket;
-                                    await gameController.RoomManager.AddPlayer(playerData, room.RoomID)
-                                        .ConfigureAwait(false);
-                                    if (playerData != null)
-                                        if (room is ILobby l)
+                                        out IPlayer playerData))
+                                    {
+                                        if (room.PlayerCanJoinRoom(playerData))
                                         {
-                                            l.PlayerReadyState[playerData] = false;
-                                            await SendMessageAsync(l).ConfigureAwait(false);
+                                            // Overwrite socket
+                                            playerData.Socket = socket;
+                                            await gameController.RoomManager.AddPlayer(playerData, room.RoomID)
+                                                .ConfigureAwait(false);
+                                            if (room is ILobby l)
+                                            {
+                                                l.PlayerReadyState[playerData] = false;
+                                                await SendMessageAsync(l).ConfigureAwait(false);
+                                            }
                                         }
+                                        else
+                                        {
+                                            if (!(room is IChatRoom))
+                                                await SendSimpleMessageAsync(playerData,
+                                                        new PlayerAccess(false, playerId))
+                                                    .ConfigureAwait(false);
+                                        }
+                                    }
 
                                     break;
                                 case "LEAVE":
                                     await gameController.RoomManager.RemovePlayer(new Player(playerId), room.RoomID)
                                         .ConfigureAwait(false);
                                     await SendMessageAsync(room).ConfigureAwait(false);
-                                    break;
-                                case "READY":
-                                    var lr = (ILobby) room;
-                                    if (lr.Players.TryGetValue(new Player(playerId), out IPlayer p))
-                                    {
-                                        if (lr.PlayerReadyState.ContainsKey(p))
-                                        {
-                                            lr.PlayerReadyState[p] = !lr.PlayerReadyState[p];
-                                        }
-
-                                        await SendMessageAsync(room).ConfigureAwait(false);
-                                    }
-
                                     break;
                                 default:
                                     gameController.RoomManager.Rooms[args[0]]
@@ -324,6 +314,17 @@ namespace WebsocketGameServer.Server
                 .ConfigureAwait(false);
             //dispose the socket
             socket.Dispose();
+        }
+
+        private async Task SendSimpleMessageAsync(IPlayer player, object obj)
+        {
+            var encoded =
+                Encoding.UTF8.GetBytes(
+                    JsonConvert.SerializeObject(obj));
+            var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
+            await player.Socket.SendAsync(buffers, WebSocketMessageType.Text, true,
+                    CancellationToken.None)
+                .ConfigureAwait(false);
         }
 
         private async Task SendMessageAsync(IRoom room)
@@ -477,107 +478,5 @@ namespace WebsocketGameServer.Server
                 }
             }
         }
-
-        /// <summary>
-        /// Handles the connection of the websocket after it being accepted as a valid client
-        /// </summary>
-        /// <param name="id">The player id of the player that 'owns' the socket</param>
-        /// <param name="socket">The socket that is being handled</param>
-        /// <returns>The task object representing whether the socket has been shut down</returns>
-        /*private async Task HandleSocket(long id, WebSocket socket)
-        {
-            //buffer
-            byte[] buffer = new byte[4096];
-
-            //capture the message from the socket
-            WebSocketReceiveResult receiveRes = await socket
-                .ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None).ConfigureAwait(false);
-
-            //TODO TEMP TEST
-            var encoded = Encoding.UTF8.GetBytes("asdasdas");
-            var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
-            await socket.SendAsync(buffers, WebSocketMessageType.Text, true, CancellationToken.None)
-                .ConfigureAwait(false);
-
-
-            //keep receiving data while the socket is open
-            while (!receiveRes.CloseStatus.HasValue)
-            {
-                //accept text only as of now //TODO: swap to binary?
-                if (receiveRes.MessageType.Equals(WebSocketMessageType.Text))
-                {
-                    //get the string content and skip if that content turns out to be null
-                    string message = Encoding.UTF8.GetString(buffer).Trim();
-                    if (string.IsNullOrEmpty(message))
-                        continue;
-
-                    //split the message into individual arguements
-                    string[] args = message.Split('|');
-                    //make sure there's at least 1 argument in the message, otherwise skip
-                    if (args.Length < 1 || string.IsNullOrEmpty(args[0]))
-                        continue;
-
-                    //check if the client want to create a new room
-                    if (args[0].ToUpperInvariant().Equals("CREATE", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        //gamecontroller lobbyservice create call
-                    }
-
-                    //if not, treat all requests as a room request
-                    IRoom room;
-                    if (gameController.RoomManager.Rooms.TryGetValue(args[0], out room))
-                    {
-                        //check nulls
-                        if (!string.IsNullOrEmpty(args[1]))
-                        {
-                            //sort the message action types, join/leave/room message and add/remove/send data downwards
-                            switch (args[1].ToUpperInvariant())
-                            {
-                                case "JOIN":
-                                    if (gameController.Players.TryGetValue(new Player(id), out IPlayer playerData) &&
-                                        room.PlayerCanJoinRoom(playerData))
-                                        await gameController.RoomManager.AddPlayer(playerData, room.RoomID)
-                                            .ConfigureAwait(false);
-                                    break;
-                                case "LEAVE":
-                                    await gameController.RoomManager.RemovePlayer(new Player(id), room.RoomID)
-                                        .ConfigureAwait(false);
-                                    break;
-                                default:
-                                    gameController.RoomManager.Rooms[args[0]]
-                                        .ReceiveMessage(new RoomMessage(id, args[0], args[1..]));
-                                    break;
-                            }
-                        }
-                    }
-                }
-
-                receiveRes = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None)
-                    .ConfigureAwait(false);
-            }
-
-            //socket closed, remove player from rooms and disconnect socket
-            ICollection<IRoom> rooms;
-            //create lookup player
-            IPlayer player = new Player(id);
-            //get rooms that the player is part of
-            if (gameController.RoomManager.PlayerRooms.TryGetValue(player, out rooms) &&
-                rooms != null)
-            {
-                //remove the player from all associated rooms
-                foreach (string roomId in rooms.Select(x => x.RoomID))
-                {
-                    await gameController.RoomManager.RemovePlayer(player, roomId).ConfigureAwait(false);
-                }
-            }
-
-            //close socket
-            await socket
-                .CloseAsync(receiveRes.CloseStatus.Value, receiveRes.CloseStatusDescription, CancellationToken.None)
-                .ConfigureAwait(false);
-            //dispose the socket
-            socket.Dispose();
-        }
-        */
     }
 }

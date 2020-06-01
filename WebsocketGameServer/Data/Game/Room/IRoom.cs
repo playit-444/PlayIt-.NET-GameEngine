@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using WebsocketGameServer.Data.Game.Players;
 using WebsocketGameServer.Data.Messages;
-using WebsocketGameServer.Models.Args;
 
 namespace WebsocketGameServer.Data.Game.Room
 {
@@ -21,12 +17,16 @@ namespace WebsocketGameServer.Data.Game.Room
         HashSet<IPlayer> Players { get; }
 
         /// <summary>
-        /// Determies whether a certain player can join the room
+        /// Determines whether a certain player can join the room
         /// </summary>
         /// <param name="player">The player that is attempting to join the room</param>
         /// <returns>Whether the player is capable of joining the room</returns>
         public bool PlayerCanJoinRoom(IPlayer player);
 
+        /// <summary>
+        /// Handle message from socket
+        /// </summary>
+        /// <param name="message"></param>
         public void ReceiveMessage(IRoomMessage message);
     }
 }

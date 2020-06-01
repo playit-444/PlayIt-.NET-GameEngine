@@ -93,6 +93,7 @@ namespace WebsocketGameServer.Data.Models.Rooms.ChatRooms
         {
             if (Players.Contains(player))
                 return false;
+
             return IChatRoom.MaxRoomSize > Players.Count;
         }
 

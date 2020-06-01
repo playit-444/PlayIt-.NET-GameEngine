@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace WebsocketGameServer.Data.Models.Players
+﻿namespace WebsocketGameServer.Data.Models.Players
 {
+    /// <summary>
+    /// base interface for defining if a player have pressed ready
+    /// </summary>
     public interface IPlayerData
     {
         public long PlayerId { get; }
