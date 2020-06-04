@@ -23,6 +23,7 @@ namespace WebsocketGameServer.Data.Game.Playable
             public int Id { get; set; }
             public long Owner { get; set; }
             public int Position { get; set; }
+            public int TeamId { get; set; }
         }
 
         /// <summary>
@@ -88,29 +89,24 @@ namespace WebsocketGameServer.Data.Game.Playable
         /// <param name="players"></param>
         private async void Initialize(HashSet<IPlayer> players)
         {
-            var args = new object[2];
-            var playerDataSimples = new Dictionary<int, PlayerDataSimple>();
-
-            int count = 0;
+            string args = "";
             foreach (var player in players)
             {
-                playerDataSimples.Add(count, new PlayerDataSimple(player.PlayerId, player.Name));
-                count++;
+                args += Environment.NewLine + player.PlayerId + "|" + player.Name;
             }
-
-            args[0] = playerDataSimples;
 
             foreach (var roomPlayer in Players)
             {
-                args[1] = roomPlayer.PlayerId;
                 var encoded =
                     Encoding.UTF8.GetBytes(
-                        JsonConvert.SerializeObject(new GameMessage(RoomID, "INIT", args)));
+                        JsonConvert.SerializeObject(new GameMessageUnity(RoomID, "INIT", roomPlayer.PlayerId + args)));
                 var buffers = new ArraySegment<Byte>(encoded, 0, encoded.Length);
                 await roomPlayer.Socket.SendAsync(buffers, WebSocketMessageType.Text, true,
                         CancellationToken.None)
                     .ConfigureAwait(false);
             }
+
+            Start();
         }
 
         /// <summary>
@@ -122,10 +118,24 @@ namespace WebsocketGameServer.Data.Game.Playable
 
             for (int i = 0; i < tileMap.Length; i++)
             {
+                int type = 0;
+
+                //Star fields
+                if (i == 0 || i == 7 || i == 13 || i == 20 || i == 26 || i == 33 || i == 39 || i == 46)
+                {
+                    type = 1;
+                }
+
+                //Globe fields
+                if (i == 2 || i == 10 || i == 15 || i == 23 || i == 28 || i == 36 || i == 41 || i == 49)
+                {
+                    type = 2;
+                }
+
                 tileMap[i] = new LudoTile()
                 {
                     Index = i,
-                    Type = 0
+                    Type = type
                 };
             }
 
@@ -159,25 +169,29 @@ namespace WebsocketGameServer.Data.Game.Playable
                     {
                         Id = pawnId,
                         Owner = players[i].PlayerId,
-                        Position = -1
+                        Position = -1,
+                        TeamId = i
                     },
                     new LudoPawn()
                     {
                         Id = pawnId + 1,
                         Owner = players[i].PlayerId,
-                        Position = -1
+                        Position = -1,
+                        TeamId = i
                     },
                     new LudoPawn()
                     {
                         Id = pawnId + 2,
                         Owner = players[i].PlayerId,
-                        Position = -1
+                        Position = -1,
+                        TeamId = i
                     },
                     new LudoPawn()
                     {
                         Id = pawnId + 3,
                         Owner = players[i].PlayerId,
-                        Position = -1
+                        Position = -1,
+                        TeamId = i
                     },
                 });
 
@@ -194,7 +208,6 @@ namespace WebsocketGameServer.Data.Game.Playable
         public string RoomID { get; private set; }
         public HashSet<IPlayer> Players { get; private set; }
         public event IGame.GameStateHandler GameStateChanged;
-
         private int Roll { get; set; }
         private int RollAttempts { get; set; }
 
@@ -206,10 +219,9 @@ namespace WebsocketGameServer.Data.Game.Playable
             else
                 CurrentPlayerTurn = turn.Next.Value;
 
+            Roll = 0;
             RollAttempts = 0;
-            var args = new object[1];
-            args[0] = CurrentPlayerTurn;
-            await SendMessageAsync(new GameMessage(RoomID, "NEXTTURN", args))
+            await SendMessageAsync(new GameMessageUnity(RoomID, "NEXTTURN", CurrentPlayerTurn.ToString()))
                 .ConfigureAwait(false);
         }
 
@@ -242,54 +254,60 @@ namespace WebsocketGameServer.Data.Game.Playable
                 switch (action)
                 {
                     case "ROLL":
-                        args = new object[2];
-                        //Check have many rolls the player have
-                        short totalRollAmount = RollAmount(message.PlayerId);
-                        //Check if the player have any tries left
-                        if (RollAttempts < totalRollAmount)
+                        //Check if player already have roled
+                        if (Roll == 0)
                         {
-                            RollAttempts += 1;
-
-                            //All pieces in start zone
-                            if (totalRollAmount > 1)
+                            //Check have many rolls the player have
+                            short totalRollAmount = RollAmount(message.PlayerId);
+                            //Check if the player have any tries left
+                            if (RollAttempts < totalRollAmount)
                             {
-                                //Need to role a 6 to get a piece out of starting zone
-                                if (RollDice() == 6)
+                                RollAttempts += 1;
+
+                                //All pieces in start zone
+                                if (totalRollAmount > 1)
                                 {
-                                    //Move a random piece from bench to board
-                                    var pawn = pawns[message.PlayerId].FirstOrDefault(a => a.Position == -1);
-                                    if (pawn != null)
+                                    var RollAmount = RollDice();
+                                    //Need to role a 6 to get a piece out of starting zone
+                                    if (RollAmount == 6)
                                     {
-                                        var moveArgs = new object[2];
-                                        pawn.Position = playerHomePads[message.PlayerId];
-                                        moveArgs[0] = pawn.Id;
-                                        moveArgs[1] = pawn.Position;
-                                        await SendMessageAsync(new GameMessage(RoomID, action, moveArgs))
-                                            .ConfigureAwait(false);
+                                        //Move a random piece from bench to board
+                                        var pawn = pawns[message.PlayerId].FirstOrDefault(a => a.Position == -1);
+                                        if (pawn != null)
+                                        {
+                                            pawn.Position = playerHomePads[message.PlayerId];
+                                            await SendMessageAsync(new GameMessageUnity(RoomID, "MOVE",
+                                                    pawn.Id + "|" + pawn.Position))
+                                                .ConfigureAwait(false);
+                                        }
+
+                                        AdvanceTurn();
+                                        return;
                                     }
 
-                                    AdvanceTurn();
-                                }
+                                    if (RollAttempts == 3)
+                                    {
+                                        //No roll left
+                                        AdvanceTurn();
+                                    }
 
-                                if (RollAttempts == 3)
+                                    await SendMessageAsync(new GameMessageUnity(RoomID, "ROLL",
+                                            RollAmount.ToString()))
+                                        .ConfigureAwait(false);
+                                }
+                                else
                                 {
-                                    //No roll left
-                                    AdvanceTurn();
+                                    //Normal roll
+                                    Roll = RollDice();
+                                    await SendMessageAsync(new GameMessageUnity(RoomID, action, Roll.ToString()))
+                                        .ConfigureAwait(false);
                                 }
                             }
                             else
                             {
-                                //Normal roll
-                                Roll = RollDice();
-                                args[0] = message.PlayerId;
-                                args[1] = Roll;
-                                await SendMessageAsync(new GameMessage(RoomID, action, args)).ConfigureAwait(false);
+                                //TODO should not be possible to hit this
+                                throw new NotImplementedException();
                             }
-                        }
-                        else
-                        {
-                            //TODO should not be possible to hit this
-                            throw new NotImplementedException();
                         }
 
                         break;
@@ -298,44 +316,128 @@ namespace WebsocketGameServer.Data.Game.Playable
                             return;
 
                         RollAttempts = 0;
-                        args = new object[2];
+                        //string ownPawnPosition;
+                        //string ownPawnId;
+
+                        //args = new object[2];
                         //Check parameters
-                        if (message.Args[0] is int pawnId && Roll != 0)
+                        if (int.TryParse(message.Args[0].ToString(), out int pawnId) && Roll != 0)
                         {
                             //Find the pawn the player is trying to move
-                            var playerPawn = pawns[message.PlayerId][pawnId];
+                            //var playerPawn = pawns[message.PlayerId][pawnId];
+                            var playerPawn = pawns[message.PlayerId].Single(a => a.Id == pawnId);
 
-                            //Calculate new position for pawn
-                            int newPosition = CalculateNewPosition(playerPawn.Position + Roll);
-
-
-                            //Pawn move inside goal zone
+                            //Check if pawn is done
                             if (playerPawn.Position == -2)
-                            {
-                                goalRow[playerPawn] = goalRow[playerPawn] + Roll;
-                                AdvanceTurn();
                                 return;
-                            }
 
-                            //Pawn hit goal zone
-                            if (playerPawn.Position + Roll > playerHomePads[message.PlayerId] &&
-                                playerPawn.Position <= playerHomePads[message.PlayerId])
+                            //Check if pawn is in start position and roll a 6
+                            if (playerPawn.Position == -1)
                             {
-                                //Hit the star before own goal so jump to end
-                                if (newPosition == playerHomePads[message.PlayerId])
+                                if (Roll == 6)
                                 {
-                                    goalRow.Add(playerPawn, 5);
-                                    playerPawn.Position = -2;
+                                    playerPawn.Position = playerHomePads[message.PlayerId];
+                                    await SendMessageAsync(new GameMessageUnity(RoomID, action,
+                                        playerPawn.Id + "|" + playerPawn.Position)).ConfigureAwait(false);
+                                    AdvanceTurn();
+                                    return;
                                 }
                                 else
                                 {
-                                    var goalPosition = newPosition - playerHomePads[message.PlayerId];
-                                    goalRow.Add(playerPawn, goalPosition);
+                                    //Need to role a 6 before getting 1 more pawn out of start
+                                    return;
                                 }
-
-                                AdvanceTurn();
-                                return;
                             }
+
+                            var playerGoal = goalEntrances[message.PlayerId];
+                            var goalEndPosition = 57 + (playerPawn.TeamId * 5);
+                            var negative = false;
+                            //Pawn hit goal zone
+                            var tempPosition = playerPawn.Position;
+                            for (int i = 0; i <= Roll; i++)
+                            {
+                                // 52 - 56
+                                // 57 - 61
+                                // 62 - 66
+                                // 67 - 71
+
+                                if (playerPawn.Position > 51)
+                                {
+                                    if (negative)
+                                    {
+                                        playerPawn.Position--;
+                                    }
+                                    else
+                                    {
+                                        playerPawn.Position++;
+                                    }
+
+                                    if (Roll == i)
+                                    {
+                                        if (playerPawn.Position == goalEndPosition)
+                                        {
+                                            await SendMessageAsync(new GameMessageUnity(RoomID, "GOAL",
+                                                    playerPawn.Id.ToString()))
+                                                .ConfigureAwait(false);
+                                            AdvanceTurn();
+                                            return;
+                                        }
+
+                                        await SendMessageAsync(new GameMessageUnity(RoomID, action,
+                                            playerPawn.Id + "|" + playerPawn.Position)).ConfigureAwait(false);
+                                        AdvanceTurn();
+                                        return;
+                                    }
+
+                                    if (playerPawn.Position >= goalEndPosition)
+                                    {
+                                        if (!negative)
+                                            playerPawn.Position++;
+                                        negative = true;
+                                    }
+                                }
+                                else
+                                {
+                                    if (tempPosition == 51)
+                                    {
+                                        tempPosition = 0;
+                                    }
+
+                                    if (tempPosition == playerGoal)
+                                    {
+                                        //Check if last roll hit goal then jump to finish
+                                        if (playerPawn.Position + Roll == playerGoal)
+                                        {
+                                            playerPawn.Position = -2;
+                                            //SEND MESSAGE TO UNITY
+                                            await SendMessageAsync(new GameMessageUnity(RoomID, "GOAL",
+                                                    playerPawn.Id.ToString()))
+                                                .ConfigureAwait(false);
+                                            return;
+                                        }
+
+                                        var goalStartPosition = 51 + (Roll - i) + (playerPawn.TeamId * 5);
+                                        if (i == Roll)
+                                        {
+                                            playerPawn.Position = -2;
+                                            await SendMessageAsync(new GameMessageUnity(RoomID, "GOAL",
+                                                    playerPawn.Id.ToString()))
+                                                .ConfigureAwait(false);
+                                            return;
+                                        }
+
+                                        playerPawn.Position = goalStartPosition;
+                                        await SendMessageAsync(new GameMessageUnity(RoomID, action,
+                                            playerPawn.Id + "|" + playerPawn.Position)).ConfigureAwait(false);
+                                        return;
+                                    }
+
+                                    tempPosition += i;
+                                }
+                            }
+
+                            //Calculate new position for pawn
+                            int newPosition = CalculateNewPosition(playerPawn.Position + Roll);
 
                             //Check if pawn lands on star then jump to next star
                             if ((tileMap[newPosition].Type & (int) TileType.STAR) == (int) TileType.STAR)
@@ -343,10 +445,10 @@ namespace WebsocketGameServer.Data.Game.Playable
                                 newPosition = JumpNextStar(newPosition);
                             }
 
+
                             //Get a list of pawns on the same position
                             var pawnsOnPosition = PawnsOnPosition(newPosition);
 
-                            args[2] = newPosition;
                             playerPawn.Position = newPosition;
 
                             //Loop other pawns if there are any
@@ -356,29 +458,24 @@ namespace WebsocketGameServer.Data.Game.Playable
                                 if (otherPawn.Owner != message.PlayerId)
                                 {
                                     //If the player's pawn land on a globe where a other pawn is already standing it kill itself.
-                                    if ((tileMap[newPosition].Type & (int) TileType.GLOBE) == (int) TileType.GLOBE)
+                                    if (((tileMap[newPosition].Type & (int) TileType.GLOBE) == (int) TileType.GLOBE) &&
+                                        playerHomePads[message.PlayerId] != newPosition)
                                     {
                                         //Suicide
-                                        args[1] = -1;
                                         playerPawn.Position = -1;
                                     }
                                     else
                                     {
                                         //KILL otherPawn
-                                        var argsKill = new object[3];
-                                        argsKill[0] = otherPawn.Id;
-                                        argsKill[1] = -1;
-                                        otherPawn.Position = -1;
-                                        await SendMessageAsync(new GameMessage(RoomID, action, argsKill))
+                                        await SendMessageAsync(new GameMessageUnity(RoomID, action,
+                                                otherPawn.Id + "|" + "-1"))
                                             .ConfigureAwait(false);
                                     }
                                 }
                             }
 
-                            //Clear roll
-                            Roll = 0;
-                            args[0] = pawnId;
-                            await SendMessageAsync(new GameMessage(RoomID, action, args)).ConfigureAwait(false);
+                            await SendMessageAsync(new GameMessageUnity(RoomID, action,
+                                playerPawn.Id + "|" + playerPawn.Position)).ConfigureAwait(false);
                             AdvanceTurn();
                         }
 
@@ -389,7 +486,7 @@ namespace WebsocketGameServer.Data.Game.Playable
             }
         }
 
-        private async Task SendMessageAsync(GameMessage gameMessage)
+        private async Task SendMessageAsync(GameMessageUnity gameMessage)
         {
             foreach (var roomPlayer in Players)
             {
@@ -443,7 +540,7 @@ namespace WebsocketGameServer.Data.Game.Playable
         private short RollAmount(in long messagePlayerId)
         {
             //Check Amount of pawns not in start zone
-            var pawnsNotInStartZone = pawns[messagePlayerId].Where(a => a.Position != -1);
+            var pawnsNotInStartZone = pawns[messagePlayerId].Where(a => a.Position != -1 && a.Position != -2);
             if (pawnsNotInStartZone.Any())
             {
                 return 1;
@@ -452,13 +549,13 @@ namespace WebsocketGameServer.Data.Game.Playable
             return 3;
         }
 
-        public void Start()
+        public async void Start()
         {
             if (TurnQueue.First != null)
                 CurrentPlayerTurn = TurnQueue.First.Value;
-            //create board
-            //assign player 'teams'
-            //grant player turn
+
+            await SendMessageAsync(new GameMessageUnity(RoomID, "NEXTTURN", CurrentPlayerTurn.ToString()))
+                .ConfigureAwait(false);
         }
     }
 }
