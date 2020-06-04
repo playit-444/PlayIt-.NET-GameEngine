@@ -142,11 +142,12 @@ namespace WebsocketGameServer.Data.Game.Playable
             var players = Players.ToArray();
             for (int i = 0; i < players.Length; i++)
             {
-                int pawnId, goalIndex;
+                int pawnId, goalIndex, teamId;
                 if (i == 0)
                 {
                     pawnId = 0;
                     goalIndex = 0;
+                    teamId = 0;
                 }
                 else
                 {
@@ -156,42 +157,44 @@ namespace WebsocketGameServer.Data.Game.Playable
                     if (players.Length == 2)
                     {
                         goalIndex = (i + 1) * 13;
+                        teamId = 2;
                     }
                     else
                     {
+                        teamId = i;
                         goalIndex = i * 13;
                     }
                 }
 
                 pawns.Add(players[i].PlayerId, new LudoPawn[]
                 {
-                    new LudoPawn()
+                    new LudoPawn
                     {
                         Id = pawnId,
                         Owner = players[i].PlayerId,
                         Position = -1,
-                        TeamId = i
+                        TeamId = teamId
                     },
-                    new LudoPawn()
+                    new LudoPawn
                     {
                         Id = pawnId + 1,
                         Owner = players[i].PlayerId,
                         Position = -1,
-                        TeamId = i
+                        TeamId = teamId
                     },
-                    new LudoPawn()
+                    new LudoPawn
                     {
                         Id = pawnId + 2,
                         Owner = players[i].PlayerId,
                         Position = -1,
-                        TeamId = i
+                        TeamId = teamId
                     },
-                    new LudoPawn()
+                    new LudoPawn
                     {
                         Id = pawnId + 3,
                         Owner = players[i].PlayerId,
                         Position = -1,
-                        TeamId = i
+                        TeamId = teamId
                     },
                 });
 
@@ -281,7 +284,8 @@ namespace WebsocketGameServer.Data.Game.Playable
                                                 .ConfigureAwait(false);
 
                                             var pawnsOnPosition = PawnsOnPosition(pawn.Position).ToList();
-                                            foreach (var ludoPawn in pawnsOnPosition.Where(a => a.Owner != message.PlayerId))
+                                            foreach (var ludoPawn in pawnsOnPosition.Where(a =>
+                                                a.Owner != message.PlayerId))
                                             {
                                                 await SendMessageAsync(new GameMessageUnity(RoomID, "MOVE",
                                                         ludoPawn.Id + "|-1"))
@@ -457,7 +461,6 @@ namespace WebsocketGameServer.Data.Game.Playable
                                     else
                                     {
                                         //Check if there is multiple pawns on the position
-
                                         if (pawnsOnPosition.Count > 1)
                                         {
                                             playerPawn.Position = -1;
@@ -465,6 +468,7 @@ namespace WebsocketGameServer.Data.Game.Playable
                                         else
                                         {
                                             //KILL otherPawn
+                                            otherPawn.Position = -1;
                                             await SendMessageAsync(new GameMessageUnity(RoomID, action,
                                                     otherPawn.Id + "|" + "-1"))
                                                 .ConfigureAwait(false);
@@ -511,12 +515,13 @@ namespace WebsocketGameServer.Data.Game.Playable
 
         private IEnumerable<LudoPawn> PawnsOnPosition(int position)
         {
+            List<LudoPawn> pawnsFound = new List<LudoPawn>();
             foreach (var pawn in pawns)
             {
-                return pawn.Value.Where(a => a.Position == position);
+                pawnsFound.AddRange(pawn.Value.Where(a => a.Position == position));
             }
 
-            return null;
+            return pawnsFound;
         }
 
         private int CalculateNewPosition(int position)
