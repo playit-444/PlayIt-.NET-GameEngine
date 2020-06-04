@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.WebSockets;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -42,12 +43,14 @@ namespace WebsocketGameServer
         public event SocketHandler SocketJoin;
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime applicationLifetime)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            applicationLifetime.ApplicationStopping.Register(OnShutdown);
 
             WebSocketOptions opts = new WebSocketOptions()
             {
@@ -91,6 +94,16 @@ namespace WebsocketGameServer
             );
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        }
+        
+        private void OnShutdown()
+        {
+            string baseUrl = "https://api.444.dk/api/";
+        
+            WebRequest request = WebRequest.Create(new Uri(baseUrl + "Game/ServerClose"));
+            request.Method = "DELETE";
+            request.Headers.Add("Authorization", "Bearer " + server.playerJwtTokenModel.JwtToken);
+            request.GetResponse();
         }
     }
 }

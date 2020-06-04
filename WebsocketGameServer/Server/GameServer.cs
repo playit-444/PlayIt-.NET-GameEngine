@@ -30,7 +30,7 @@ namespace WebsocketGameServer.Server
         private readonly string baseUrl = "https://api.444.dk/api/";
 
         //private readonly string baseUrl = "https://localhost:5002/api/";
-        private PlayerJwtTokenModel playerJwtTokenModel;
+        public PlayerJwtTokenModel playerJwtTokenModel;
         private IGameController gameController;
 
         public GameServer(IGameController controller)
