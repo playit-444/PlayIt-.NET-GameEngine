@@ -68,7 +68,6 @@ namespace WebsocketGameServer.Server
                             (byte) data.minimumPlayers,
                             (byte) data.maxPlayers,
                             $"thunberg deluxe {data.name}");
-                    lobby.OnTimerStart += gameController.HandleGameTimerStartEvent;
 
                     gameController.RoomManager
                         .AddRoom(lobby);
@@ -425,6 +424,7 @@ namespace WebsocketGameServer.Server
                                 lobby.Players.Count);
                         break;
                     case RoomActionType.CREATE:
+                        lobby.OnTimerStart += gameController.HandleGameTimerStartEvent;
                         request.Method = "POST";
                         payload =
                             new GameRoomData(

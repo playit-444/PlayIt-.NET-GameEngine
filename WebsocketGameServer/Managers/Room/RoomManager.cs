@@ -189,7 +189,6 @@ namespace WebsocketGameServer.Managers.Room
                                 Array.Empty<IPlayer>(),
                                 lobby.MinPlayersNeededToStart,
                                 lobby.MaxPlayersNeededToStart);
-
                         Rooms.Add(newLobby.RoomID, newLobby);
 
                         RoomStateChanged?.Invoke(new RoomArgs(newLobby, RoomActionType.CREATE));
