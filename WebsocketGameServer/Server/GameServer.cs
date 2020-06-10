@@ -94,7 +94,7 @@ namespace WebsocketGameServer.Server
             //get bytes of the json representation of the payload object and set the payload size
             byte[] bytes =
                 Encoding.UTF8.GetBytes(
-                    JsonConvert.SerializeObject(new PlayerSignIn("api.444", "tc5mAM!NIRDp%dr5", "127.0.0.1")));
+                    JsonConvert.SerializeObject(new PlayerSignIn("api", "tc5mAM!NIRDp%dr5", "127.0.0.1")));
             request.ContentLength = bytes.Length;
 
             //write&flush content to the uri endpoint
