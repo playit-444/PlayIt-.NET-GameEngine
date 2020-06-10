@@ -55,18 +55,21 @@ namespace WebsocketGameServer.Managers.Timers
                 {
                     if (Timers.ContainsKey(args.RoomId))
                     {
-                        if (args.MinimumPlayers >= args.ReadyPlayers)
+                        if (args.MinimumPlayers <= args.ReadyPlayers && args.Players.Length == args.ReadyPlayers)
                         {
                             Timers[args.RoomId] = 5;
-                        }
-                        else
-                        {
-                            Timers[args.RoomId] = 60;
                         }
                     }
                     else
                     {
-                        Timers.Add(args.RoomId, timer);
+                        if (args.MinimumPlayers >= args.ReadyPlayers && args.Players.Length == args.ReadyPlayers)
+                        {
+                            Timers.Add(args.RoomId, 5);
+                        }
+                        else
+                        {
+                            Timers.Add(args.RoomId, timer);
+                        }
                     }
 
                     TimersData[args.RoomId] = args.Players;
