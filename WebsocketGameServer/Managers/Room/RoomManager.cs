@@ -179,19 +179,22 @@ namespace WebsocketGameServer.Managers.Room
                 {
                     openLobbies[lobby.GameType]--;
 
-                    if (openLobbies[lobby.GameType] < 2)
+                    if (openLobbies[lobby.GameType] < 3)
                     {
+                        var generatedId = IdGenerator.CreateID(4);
+
                         Lobby newLobby =
                             new Lobby(
-                                IdGenerator.CreateID(4),
-                                "automaticically created room",
+                                generatedId,
+                                "Automatically created room",
                                 lobby.GameType,
                                 Array.Empty<IPlayer>(),
                                 lobby.MinPlayersNeededToStart,
                                 lobby.MaxPlayersNeededToStart);
                         Rooms.Add(newLobby.RoomID, newLobby);
-
                         RoomStateChanged?.Invoke(new RoomArgs(newLobby, RoomActionType.CREATE));
+
+                        AddRoom(new ChatRoom(generatedId + "-TABLECHAT", "Automatically created chatRoom", null));
                     }
                 }
             }

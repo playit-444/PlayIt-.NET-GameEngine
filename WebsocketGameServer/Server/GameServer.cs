@@ -28,8 +28,6 @@ namespace WebsocketGameServer.Server
     public class GameServer
     {
         private readonly string baseUrl = "https://api.444.dk/api/";
-
-        //private readonly string baseUrl = "https://localhost:5002/api/";
         public PlayerJwtTokenModel playerJwtTokenModel;
         private IGameController gameController;
 
