@@ -55,7 +55,7 @@ namespace WebsocketGameServer.Managers.Timers
                 {
                     if (Timers.ContainsKey(args.RoomId))
                     {
-                        if (args.MinimumPlayers == args.MaximumPlayers)
+                        if (args.MinimumPlayers >= args.ReadyPlayers)
                         {
                             Timers[args.RoomId] = 5;
                         }
