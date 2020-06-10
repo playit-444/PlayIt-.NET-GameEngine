@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace WebsocketGameServer.Data.Models.Rooms
+﻿namespace WebsocketGameServer.Data.Models.Rooms
 {
     /// <summary>
     /// Room transfer data for sending a simple room state object

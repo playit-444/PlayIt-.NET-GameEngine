@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace WebsocketGameServer.Data.Models.Rooms
+﻿namespace WebsocketGameServer.Data.Models.Rooms
 {
     public class GameRoomData : IGameRoomData
     {
-        public GameRoomData(in int gameType, in string roomID, in string name, in int maxUsers, in int currentUsers, in bool privateRoom = false)
+        public GameRoomData(in int gameType, in string roomID, in string name, in int maxUsers, in int currentUsers,
+            in bool privateRoom = false)
         {
             GameType = gameType;
             RoomID = roomID;
