@@ -13,7 +13,7 @@ using WebsocketGameServer.Services.Room;
 
 namespace WebsocketGameServer.Controllers
 {
-    public class GameController : IGameController
+    public class GameController : IGameController, IPlayerVerifier<PlayerVerificationResponseModel>
     {
         private readonly IVerificationService<PlayerVerificationResponseModel> verificationService;
 
@@ -56,13 +56,20 @@ namespace WebsocketGameServer.Controllers
             ReadyTimer.OnTimerEnd += HandleReadyTimerEnded;
         }
 
+        /// <summary>
+        /// Handles room creation once the ready timer has ended
+        /// </summary>
+        /// <param name="id">the id of the room</param>
         public void HandleReadyTimerEnded(string id)
         {
+            //make sure room exists
             if (RoomManager.Rooms.ContainsKey(id))
             {
+                //create a game room to replace the existing room
                 var game = GameFactory.CreateGame(RoomManager.Rooms[id]);
                 if (game != null)
                 {
+                    //replace the room
                     RoomManager.RemoveRoom(game.RoomID);
                     RoomManager.AddRoom(game);
                 }
@@ -71,17 +78,21 @@ namespace WebsocketGameServer.Controllers
 
         public async Task<PlayerVerificationResponseModel> VerifyAsync(string token)
         {
+            //check null
             if (string.IsNullOrEmpty(token))
                 return null;
 
+            //return the verification result
             return await verificationService.VerifyToken(token).ConfigureAwait(false);
         }
 
         public async Task AcceptPlayerAsync(IPlayer player)
         {
+            //check null
             if (player == null)
                 return;
 
+            //add player to the list
             Players.Add(player);
         }
     }
