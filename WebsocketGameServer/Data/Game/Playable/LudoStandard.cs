@@ -13,6 +13,9 @@ using WebsocketGameServer.Data.Models.Games;
 
 namespace WebsocketGameServer.Data.Game.Playable
 {
+    /// <summary>
+    /// Game logic implementation for a standard game of ludo
+    /// </summary>
     public class LudoStandard : IGame
     {
         /// <summary>
@@ -20,9 +23,21 @@ namespace WebsocketGameServer.Data.Game.Playable
         /// </summary>
         private class LudoPawn
         {
+            /// <summary>
+            /// The id of the pawn
+            /// </summary>
             public int Id { get; set; }
+            /// <summary>
+            /// The owner id associated to the pawn
+            /// </summary>
             public long Owner { get; set; }
+            /// <summary>
+            /// The tile position of the pawn
+            /// </summary>
             public int Position { get; set; }
+            /// <summary>
+            /// The is of the team which the pawn belongs to
+            /// </summary>
             public int TeamId { get; set; }
         }
 
@@ -31,7 +46,13 @@ namespace WebsocketGameServer.Data.Game.Playable
         /// </summary>
         private class LudoTile
         {
+            /// <summary>
+            /// The composite ludo tile type of tile
+            /// </summary>
             public int Type { get; set; }
+            /// <summary>
+            /// The index which the tile is on
+            /// </summary>
             public int Index { get; set; }
         }
 
@@ -63,23 +84,29 @@ namespace WebsocketGameServer.Data.Game.Playable
 
         public LudoStandard(int gameType, float turnTimeout, string roomID, HashSet<IPlayer> players)
         {
+            //check null
             if (players == null)
                 throw new ArgumentNullException(nameof(players));
 
+            //set properties
             GameType = gameType;
             TurnTimeout = turnTimeout;
             RoomID = roomID;
             Players = players;
 
+            //create the turn queue
             long[] playerIds = players.Select(p => p.PlayerId).ToArray();
             TurnQueue = new LinkedList<long>(playerIds);
 
+            //create collections
             playerHomePads = new Dictionary<long, int>(players.Count);
             goalEntrances = new Dictionary<long, int>(players.Count);
             pawns = new Dictionary<long, LudoPawn[]>(players.Count);
             goalRow = new Dictionary<LudoPawn, int>();
 
+            //generate map
             GenerateMap();
+            //initialize the game
             Initialize(players);
         }
 
@@ -89,6 +116,7 @@ namespace WebsocketGameServer.Data.Game.Playable
         /// <param name="players"></param>
         private async void Initialize(HashSet<IPlayer> players)
         {
+            //send the ordered player data to the other players
             string args = "";
             foreach (var player in players)
             {
@@ -106,6 +134,7 @@ namespace WebsocketGameServer.Data.Game.Playable
                     .ConfigureAwait(false);
             }
 
+            //start the game
             Start();
         }
 
@@ -211,30 +240,45 @@ namespace WebsocketGameServer.Data.Game.Playable
         public string RoomID { get; private set; }
         public HashSet<IPlayer> Players { get; private set; }
         public event IGame.GameStateHandler GameStateChanged;
+
+        /// <summary>
+        /// The roll value currently in play
+        /// </summary>
         private int Roll { get; set; }
+        /// <summary>
+        /// the attempted amount of rolls
+        /// </summary>
         private int RollAttempts { get; set; }
 
         public async void AdvanceTurn()
         {
+            //get the next player id
             var turn = TurnQueue.Find(CurrentPlayerTurn);
             if (turn.Next == null)
                 CurrentPlayerTurn = TurnQueue.First.Value;
             else
                 CurrentPlayerTurn = turn.Next.Value;
 
+            //reset counts
             Roll = 0;
             RollAttempts = 0;
+            //notify players
             await SendMessageAsync(new GameMessageUnity(RoomID, "NEXTTURN", CurrentPlayerTurn.ToString()))
                 .ConfigureAwait(false);
         }
 
-        private int RollDice()
+        /// <summary>
+        /// Gets the new roll value
+        /// </summary>
+        /// <returns>a new die roll value</returns>
+        private int RollDie()
         {
             return new Random().Next(1, 7);
         }
 
         public IDictionary<IPlayer, float> End()
         {
+            //TODO: implement game ending logic
             throw new NotImplementedException();
         }
 
@@ -270,7 +314,7 @@ namespace WebsocketGameServer.Data.Game.Playable
                                 //All pieces in start zone
                                 if (totalRollAmount > 1)
                                 {
-                                    var RollAmount = RollDice();
+                                    var RollAmount = RollDie();
                                     //Need to role a 6 to get a piece out of starting zone
                                     if (RollAmount == 6)
                                     {
@@ -310,7 +354,7 @@ namespace WebsocketGameServer.Data.Game.Playable
                                 else
                                 {
                                     //Normal roll
-                                    Roll = RollDice();
+                                    Roll = RollDie();
                                     await SendMessageAsync(new GameMessageUnity(RoomID, action, Roll.ToString()))
                                         .ConfigureAwait(false);
                                 }
@@ -489,6 +533,11 @@ namespace WebsocketGameServer.Data.Game.Playable
             }
         }
 
+        /// <summary>
+        /// Sends a specific pawn directly to the goal position
+        /// </summary>
+        /// <param name="playerPawn">the pawn to be moved</param>
+        /// <returns>Whether the task completed successfully</returns>
         private async Task PawnToGoal(LudoPawn playerPawn)
         {
             playerPawn.Position = -2;
@@ -499,6 +548,11 @@ namespace WebsocketGameServer.Data.Game.Playable
             AdvanceTurn();
         }
 
+        /// <summary>
+        /// Sends a message to the unity client
+        /// </summary>
+        /// <param name="gameMessage">the message to be sent</param>
+        /// <returns>Whether the task completed successfully</returns>
         private async Task SendMessageAsync(GameMessageUnity gameMessage)
         {
             foreach (var roomPlayer in Players)
@@ -513,6 +567,11 @@ namespace WebsocketGameServer.Data.Game.Playable
             }
         }
 
+        /// <summary>
+        /// Gets the pawns on the tile index
+        /// </summary>
+        /// <param name="position">the tile index to search at</param>
+        /// <returns>the pawns on the tile position</returns>
         private IEnumerable<LudoPawn> PawnsOnPosition(int position)
         {
             List<LudoPawn> pawnsFound = new List<LudoPawn>();
@@ -524,6 +583,11 @@ namespace WebsocketGameServer.Data.Game.Playable
             return pawnsFound;
         }
 
+        /// <summary>
+        /// Calculates the new pawn position
+        /// </summary>
+        /// <param name="position">the current position</param>
+        /// <returns>the new index position</returns>
         private int CalculateNewPosition(int position)
         {
             if (position > 51)
@@ -534,6 +598,11 @@ namespace WebsocketGameServer.Data.Game.Playable
             return position;
         }
 
+        /// <summary>
+        /// moves a pawn to the next star
+        /// </summary>
+        /// <param name="position">the position of the pawn</param>
+        /// <returns>the new index to move to</returns>
         private int JumpNextStar(int position)
         {
             //Loop all tileMap
@@ -551,6 +620,11 @@ namespace WebsocketGameServer.Data.Game.Playable
             return 0;
         }
 
+        /// <summary>
+        /// gets the amount of permitted rolls for a player
+        /// </summary>
+        /// <param name="messagePlayerId">the player to generate roll for</param>
+        /// <returns>the new roll amount</returns>
         private short RollAmount(in long messagePlayerId)
         {
             //Check Amount of pawns not in start zone
