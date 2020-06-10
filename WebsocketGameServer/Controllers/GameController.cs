@@ -52,8 +52,7 @@ namespace WebsocketGameServer.Controllers
 
         public void HandleGameTimerStartEvent(GameStartEventArgs args)
         {
-            //TODO SET TO 60
-            ReadyTimer.AddTimer(args, 2);
+            ReadyTimer.AddTimer(args, 60);
             ReadyTimer.OnTimerEnd += HandleReadyTimerEnded;
         }
 
